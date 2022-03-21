@@ -1,4 +1,4 @@
-grammar shaell;
+grammar Shaell;
 
 IF: 'if';
 THEN: 'then';
@@ -70,6 +70,7 @@ DQUOTE: '"';
 SQUOTE: '\'';
 FALSE: 'false';
 TRUE: 'true';
+WHITESPACE: (' ' | '\t' | '\n')+ -> skip;
 
 /*
 Lacks functions and comments
@@ -95,7 +96,7 @@ expr:
 	| expr LEQ expr
 	| expr GT expr
 	| expr GEQ expr
-	| expr EQ expr
+	| expr EQ expr	
 	| expr NEQ expr
 	| expr LAND expr
 	| expr LOR expr
