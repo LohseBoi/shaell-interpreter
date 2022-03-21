@@ -77,7 +77,7 @@ Lacks functions and comments
 
 prog: stmts;
 stmts: stmt*;
-stmt: expr | ifstmt | forLoop | whileLoop;
+stmt: ifstmt | forLoop | whileLoop | returnStatement | functionDefinition | expr;
 expr:  
 	identifier
 	| LPAREN expr RPAREN 
@@ -106,4 +106,6 @@ identifier: FILEIDENTFIER | VARIDENTFIER;
 ifstmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;
+functionDefinition: FUNCTION VARIDENTFIER LPAREN innerArgList RPAREN stmts END;
+returnStatement: RETURN expr;
 
