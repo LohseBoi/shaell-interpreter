@@ -2,7 +2,7 @@ using System;
 
 namespace ShaellLang
 {
-    public class Number : IValue
+    public class Number : IValue, IKeyable
     {
         private dynamic _numberRepresentation;
 
@@ -27,6 +27,8 @@ namespace ShaellLang
         }
 
         public long ToInteger() => Convert.ToInt64(_numberRepresentation);
-        public long ToFloating() => Convert.ToDouble(_numberRepresentation);
+        public double ToFloating() => Convert.ToDouble(_numberRepresentation);
+        public string KeyValue { get => Convert.ToString(_numberRepresentation); }
+        public string UniquePrefix { get => "N"; }
     }
 }
