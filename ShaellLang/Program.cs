@@ -9,7 +9,7 @@ namespace ShaellLang
 {
     class ProgVisitor : ShaellBaseVisitor<object> {
         public override object VisitProg(ShaellParser.ProgContext context)
-        {            
+        {
             Console.WriteLine("Jeg besøger en prog");
             return null;
         }

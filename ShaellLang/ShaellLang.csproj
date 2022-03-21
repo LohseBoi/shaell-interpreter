@@ -20,4 +20,8 @@
     </Antlr4>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Shaell.g4" />
+  </ItemGroup>
+
 </Project>
