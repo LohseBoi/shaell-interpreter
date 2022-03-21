@@ -8,10 +8,10 @@ namespace ShaellLang
 	{
 		private NativeFuncCallHandler _callHandler;
 
-		public NativeFunc(NativeFuncCallHandler callHandler, uint argumnetCount)
+		public NativeFunc(NativeFuncCallHandler callHandler, uint argumentCount)
 		{
 			_callHandler = callHandler;
-			ArgumentCount = argumnetCount;
+			ArgumentCount = argumentCount;
 		}
 
 		//Implement IFunction
