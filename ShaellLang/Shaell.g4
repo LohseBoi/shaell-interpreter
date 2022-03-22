@@ -65,12 +65,15 @@ RSHIFTEQ: '>>=';
 LSHIFTEQ: '<<=';
 FILEIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
 VARIDENTFIER: DOLLAR [a-zA-Z0-9_.$]*;
-NUMBER: [0-9]+(.[0-9]+)?;
+NUMBER: [0-9]+('.'[0-9]+)?;
 DQUOTE: '"';
 SQUOTE: '\'';
 FALSE: 'false';
 TRUE: 'true';
-WHITESPACE: (' ' | '\t' | '\n')+ -> skip;
+STRINGLITERAL: '"' ~('"' | '\n')* '"';
+COMMENT : '#' ~['\n']* {this._tokenStartCharPositionInLine == 0}?;
+
+WHITESPACE: (' ' | '\t' | '\r' | '\n')+ -> skip;
 
 /*
 Lacks functions and comments
@@ -78,35 +81,47 @@ Lacks functions and comments
 
 prog: stmts;
 stmts: stmt*;
-stmt: ifstmt | forLoop | whileLoop | returnStatement | functionDefinition | expr;
+stmt: ifStmt | forLoop | whileLoop | returnStatement | functionDefinition | expr;
+boolean: TRUE | FALSE;
 expr:  
-	identifier
-	| LPAREN expr RPAREN 
-	|<assoc=right> DEREF expr 
-	|<assoc=right> LNOT expr 
-	|<assoc=right> BNOT expr 
-	|<assoc=right> MINUS expr 
-	| expr COLON expr 
-	| expr LSQUACKET expr RSQUACKET 
-	| expr LPAREN innerArgList RPAREN
-	| expr MULT expr
-	| expr DIV expr
-	| expr PLUS expr
-	| expr LT expr
-	| expr LEQ expr
-	| expr GT expr
-	| expr GEQ expr
-	| expr EQ expr	
-	| expr NEQ expr
-	| expr LAND expr
-	| expr LOR expr
-	| expr PIPE expr
-	|<assoc=right> expr ASSIGN expr;
+    COMMENT # CommentExpr
+    | STRINGLITERAL # StringLiteralExpr
+    | NUMBER # NumberExpr
+    | boolean # BooleanExpr
+	| identifier # IdentifierExpr
+	| LPAREN expr RPAREN # Parenthesis
+	|<assoc=right> DEREF expr # DerefExpr
+	|<assoc=right> LNOT expr # LnotExpr
+	|<assoc=right> BNOT expr # BnotExpr
+	|<assoc=right> MINUS expr # NegExpr
+	|<assoc=right> PLUS expr # PosExpr
+	| expr COLON identifier # IdentifierIndexExpr
+	| expr LSQUACKET expr RSQUACKET # SubScriptExpr
+	| expr LPAREN innerArgList RPAREN # FunctionCallExpr
+	| expr DIV expr # DivExpr
+	| expr MULT expr # MultExpr
+    | expr PLUS expr # AddExpr
+    | expr MINUS expr # MinusExpr
+    | expr LT expr # LTExpr
+    | expr LEQ expr # LEQExpr
+    | expr GT expr # GTExpr
+    | expr GEQ expr # GEQExpr
+    | expr EQ expr # EQExpr
+    | expr NEQ expr # NEQExpr
+    | expr LAND expr # LANDExpr
+    | expr LOR expr # LORExpr
+    | expr PIPE expr # PIPEExpr
+	|<assoc=right> expr ASSIGN expr # AssignExpr
+	;
+
+
+
 innerArgList: (expr (COMMA expr)*)?;
+innerFormalArgList: (VARIDENTFIER (COMMA VARIDENTFIER)*)?;
 identifier: FILEIDENTFIER | VARIDENTFIER;
-ifstmt: IF expr THEN stmts (ELSE stmts)? END;
+ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;
-functionDefinition: FUNCTION VARIDENTFIER LPAREN innerArgList RPAREN stmts END;
+functionDefinition: FUNCTION VARIDENTFIER LPAREN innerFormalArgList RPAREN stmts END;
 returnStatement: RETURN expr;
 

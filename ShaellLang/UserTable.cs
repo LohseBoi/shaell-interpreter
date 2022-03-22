@@ -7,8 +7,7 @@ namespace ShaellLang
 		private Dictionary<string, IValue> values;
 		private string keyValue(IKeyable key) => key.UniquePrefix + key.KeyValue;
 
-
-		private void SetValue(IKeyable key, IValue value) 
+		public void SetValue(IKeyable key, IValue value) 
 		{
 			values.Add(keyValue(key), value);
 		}
