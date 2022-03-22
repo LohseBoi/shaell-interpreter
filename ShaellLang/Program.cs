@@ -12,12 +12,13 @@ namespace ShaellLang
     {
         static void Main(string[] args)
         {
-            /*if (args.Length < 1 ) {
+            if (args.Length < 1 ) {
                 Console.WriteLine("Expected first argument to be filename");
                 return;
-            }*/
-            var filename = @"/home/papzi/Development/example-scripts/check-stregsystem.æ";//args[0];
+            }
 
+            var filename = args[0];
+            
             var content = File.ReadAllText(filename);
 
             AntlrInputStream inputStream = new AntlrInputStream(content);
