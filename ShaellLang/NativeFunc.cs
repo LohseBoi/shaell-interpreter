@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections;
 
@@ -19,5 +20,19 @@ namespace ShaellLang
 		public IValue Call(ICollection<IValue> args) => _callHandler(args);
 
 		public uint ArgumentCount {  get; private set; }
+		
+		public bool ToBool() => true;
+
+		public Number ToNumber()
+		{
+			throw new Exception("Type error, function cannot be converted to number");
+		}
+
+		public IFunction ToFunction() => this;
+
+		public SString ToSString()
+		{
+			throw new Exception("Type error, function cannot be converted to string");
+		}
 	}
 }

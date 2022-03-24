@@ -71,7 +71,7 @@ SQUOTE: '\'';
 FALSE: 'false';
 TRUE: 'true';
 STRINGLITERAL: '"' ~('"' | '\n')* '"';
-COMMENT : '#' ~['\n']* {this._tokenStartCharPositionInLine == 0}?;
+COMMENT : '#' ~[\n]* {this._tokenStartCharPositionInLine == 0}?;
 
 WHITESPACE: (' ' | '\t' | '\r' | '\n')+ -> skip;
 
@@ -118,7 +118,10 @@ expr:
 
 innerArgList: (expr (COMMA expr)*)?;
 innerFormalArgList: (VARIDENTFIER (COMMA VARIDENTFIER)*)?;
-identifier: FILEIDENTFIER | VARIDENTFIER;
+identifier: 
+    FILEIDENTFIER #FileIdentifier
+    | VARIDENTFIER #VarIdentifier
+    ;
 ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;

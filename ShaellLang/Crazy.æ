@@ -1,0 +1,31 @@
+﻿$per = 2 + 1
+
+fn $printHalloShaell($nej)
+    $print("Hej fra shæll :)")
+    $print($nej)
+end
+
+fn $funcMedReturVaerdi($n)
+    return 2 + $n
+end
+
+$print("Hello from shæll!")
+
+$printMenBedre = $print
+
+$printMenBedre("Hej fra bedre print")
+
+
+$printHalloShaell("Ekstra besked")
+
+$printHalloShaell(120)
+
+$print(
+    "det er da fed at få retur værdier som ", 
+    $funcMedReturVaerdi(4), 
+    " og vide at 391 + 2902 = ", 
+    391 + 2902, 
+    "!"
+)
+
+$print("haha benis")

@@ -5,16 +5,16 @@ namespace ShaellLang
 	public class UserTable : IReadonlyTable 
 	{
 		private Dictionary<string, IValue> values;
-		private string keyValue(IKeyable key) => key.UniquePrefix + key.KeyValue;
+		private string KeyValue(IKeyable key) => key.UniquePrefix + key.KeyValue;
 
 		public void SetValue(IKeyable key, IValue value) 
 		{
-			values.Add(keyValue(key), value);
+			values.Add(KeyValue(key), value);
 		}
 		
 		public IValue GetValue(IKeyable key)
 		{
-			bool exists = values.TryGetValue(keyValue(key), out IValue value);
+			bool exists = values.TryGetValue(KeyValue(key), out IValue value);
 			if (exists)
 			{
 				return value;
@@ -24,7 +24,7 @@ namespace ShaellLang
 
 		public void RemoveValue(IKeyable key)
 		{
-			values.Remove(keyValue(key));
+			values.Remove(KeyValue(key));
 		}
 	}
 }

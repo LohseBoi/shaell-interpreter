@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
@@ -27,8 +28,18 @@ namespace ShaellLang
             ShaellParser shaellParser = new ShaellParser(commonTokenStream);
             
             ShaellParser.ProgContext progContext = shaellParser.prog();
-            var prettyVisitor = new PrettyVisitor();
-            prettyVisitor.Visit(progContext);
+            var executer = new ExecutionVisitor();
+            executer.SetGlobal("$print", new NativeFunc(delegate(ICollection<IValue> values)
+            {
+                foreach (var value in values)
+                {
+                    Console.Write(value.ToSString().Val);
+                }
+                Console.WriteLine();
+
+                return new SNull();
+            }, 0));
+            executer.Visit(progContext);
             
         }
     }

@@ -5,6 +5,12 @@ namespace ShaellLang
 {
 	public interface IValue
 	{
-		
+		bool ToBool();
+
+		Number ToNumber();
+
+		IFunction ToFunction();
+
+		SString ToSString();
 	}
 }
