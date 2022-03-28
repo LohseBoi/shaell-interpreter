@@ -11,7 +11,7 @@ end
 
 $print("Hello from shæll!")
 
-$str:length()
+#$str:length()
 
 $printMenBedre = $print
 
