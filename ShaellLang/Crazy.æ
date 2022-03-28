@@ -1,0 +1,50 @@
+﻿$per = 2 + 1
+
+fn $printHalloShaell($nej)
+    $print("Hej fra shæll :)")
+    $print($nej)
+end
+
+fn $funcMedReturVaerdi($n)
+    return 2 + $n
+end
+
+$print("Hello from shæll!")
+
+#$str:length()
+
+$printMenBedre = $print
+
+$printMenBedre("Hej fra bedre print")
+
+
+$printHalloShaell("Ekstra besked")
+
+$printHalloShaell(120)
+
+$print(
+    "det er da fed at få retur værdier som ", 
+    $funcMedReturVaerdi(4), 
+    " og vide at 391 + 2902 = ", 
+    391 + 2902, 
+    "!"
+)
+
+$obj = $CreateTable()
+
+$obj:thing = 1
+
+$print("haha ", $obj:thing + 2, " benis")
+
+
+$print("haha benis")
+
+if true then
+    $print("haha benis")
+end
+
+if false then
+    $print("nej ikke benis")
+end
+
+

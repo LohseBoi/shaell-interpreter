@@ -63,13 +63,13 @@ BOREQ: '|=';
 MODEQ: '%=';
 RSHIFTEQ: '>>=';
 LSHIFTEQ: '<<=';
+FALSE: 'false';
+TRUE: 'true';
 FILEIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
 VARIDENTFIER: DOLLAR [a-zA-Z0-9_.$]*;
 NUMBER: [0-9]+('.'[0-9]+)?;
 DQUOTE: '"';
 SQUOTE: '\'';
-FALSE: 'false';
-TRUE: 'true';
 STRINGLITERAL: '"' ~('"' | '\n')* '"';
 COMMENT : '#' ~('\n')* (('\r'? '\n') | EOF) -> skip;
 WHITESPACE: (' ' | '\t' | '\r' | '\n')+ -> skip;
@@ -81,10 +81,12 @@ Lacks functions and comments
 prog: stmts;
 stmts: stmt*;
 stmt: ifStmt | forLoop | whileLoop | returnStatement | functionDefinition | expr;
-boolean: TRUE | FALSE;
+boolean: TRUE # TrueBoolean 
+    | FALSE # FalseBoolean
+    ;
 expr: STRINGLITERAL # StringLiteralExpr
     | NUMBER # NumberExpr
-    | boolean # BooleanExpr
+	| boolean # BooleanExpr
 	| identifier # IdentifierExpr
 	| LPAREN expr RPAREN # Parenthesis
 	|<assoc=right> DEREF expr # DerefExpr
@@ -113,7 +115,10 @@ expr: STRINGLITERAL # StringLiteralExpr
 
 innerArgList: (expr (COMMA expr)*)?;
 innerFormalArgList: (VARIDENTFIER (COMMA VARIDENTFIER)*)?;
-identifier: FILEIDENTFIER | VARIDENTFIER;
+identifier: 
+    FILEIDENTFIER #FileIdentifier
+    | VARIDENTFIER #VarIdentifier
+    ;
 ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;
