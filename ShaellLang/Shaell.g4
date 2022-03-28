@@ -71,8 +71,7 @@ SQUOTE: '\'';
 FALSE: 'false';
 TRUE: 'true';
 STRINGLITERAL: '"' ~('"' | '\n')* '"';
-COMMENT : '#' ~['\n']* {this._tokenStartCharPositionInLine == 0}?;
-
+COMMENT : '#' ~('\n')* (('\r'? '\n') | EOF) -> skip;
 WHITESPACE: (' ' | '\t' | '\r' | '\n')+ -> skip;
 
 /*
@@ -83,9 +82,7 @@ prog: stmts;
 stmts: stmt*;
 stmt: ifStmt | forLoop | whileLoop | returnStatement | functionDefinition | expr;
 boolean: TRUE | FALSE;
-expr:  
-    COMMENT # CommentExpr
-    | STRINGLITERAL # StringLiteralExpr
+expr: STRINGLITERAL # StringLiteralExpr
     | NUMBER # NumberExpr
     | boolean # BooleanExpr
 	| identifier # IdentifierExpr
@@ -114,8 +111,6 @@ expr:
 	|<assoc=right> expr ASSIGN expr # AssignExpr
 	;
 
-
-
 innerArgList: (expr (COMMA expr)*)?;
 innerFormalArgList: (VARIDENTFIER (COMMA VARIDENTFIER)*)?;
 identifier: FILEIDENTFIER | VARIDENTFIER;
@@ -124,4 +119,3 @@ forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;
 functionDefinition: FUNCTION VARIDENTFIER LPAREN innerFormalArgList RPAREN stmts END;
 returnStatement: RETURN expr;
-
