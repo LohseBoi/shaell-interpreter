@@ -49,6 +49,12 @@ namespace ShaellLang
                 return new SString(ToInteger().ToString());
             }
         }
+
+        public ITable ToTable()
+        {
+            throw new Exception("Type error: Number cannot be converted to table");
+        }
+
         public static Number operator +(Number a, Number b)
         {
             if (a.IsFloating || b.IsFloating)
@@ -60,6 +66,26 @@ namespace ShaellLang
                 // Does not check for overflow where it should switch to floating
                 return new Number(a.ToInteger() + b.ToInteger());
             }
+        }
+
+        public static Number operator /(Number a, Number b)
+        {
+            if (a.IsFloating || b.IsFloating)
+            {
+                return new Number(a.ToFloating() / b.ToFloating());
+            }
+            // Does not check for overflow where it should switch to floating
+            return new Number(a.ToInteger() / b.ToInteger());
+        }
+        
+        //overide unary - and return the negative of the number
+        public static Number operator -(Number a)
+        {
+            if (a.IsFloating)
+            {
+                return new Number(-a.ToFloating());
+            }
+            return new Number(-a.ToInteger());
         }
     }
 }

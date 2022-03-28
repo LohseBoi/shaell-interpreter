@@ -121,10 +121,11 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
             var rv = VisitStmt(stmt);
             if (_shouldReturn)
             {
-                _shouldReturn = true;
+                _shouldReturn = false;
                 return rv;
             }
         }
+        _scopeManager.PopScope();
         return null;
     }
 
@@ -173,6 +174,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitReturnStatement(ShaellParser.ReturnStatementContext context)
     {
         _shouldReturn = true;
+        //TODO: Kan returnere som reference
         return Visit(context.expr());
     }
 
@@ -218,6 +220,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         {
             rhs = (rhs as RefValue).Get();
         }
+        //TODO: Det her assigner lhs til en reference til IValue hvilket lige skal fixes
         
         refLhs.Set(rhs);
 
@@ -244,6 +247,8 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
     public override IValue VisitNumberExpr(ShaellParser.NumberExprContext context)
     {
+        //TODO: Implement floating point or int parsing instead of just int
+        
         return new Number(int.Parse(context.NUMBER().GetText()));
     }
 
@@ -271,4 +276,60 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     {
         return new SString(context.STRINGLITERAL().GetText()[1..^1]);
     }
+    
+    //Visit DivExpr and evaluate both sides and return the two values divided
+    public override IValue VisitDivExpr(ShaellParser.DivExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return lhs.ToNumber() / rhs.ToNumber();
+    }
+    
+    //Visit PosExpr and return the value with toNumber
+    public override IValue VisitPosExpr(ShaellParser.PosExprContext context)
+    {
+        var lhs = Visit(context.expr());
+        return lhs.ToNumber();
+    }
+    
+    //Visit NegExpr and return the value with negative toNumber
+    public override IValue VisitNegExpr(ShaellParser.NegExprContext context)
+    {
+        var lhs = Visit(context.expr());
+        return -lhs.ToNumber();
+    }
+    
+    //Visit the LORExpr and return the value of the left or right side with short circuiting
+    public override IValue VisitLORExpr(ShaellParser.LORExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        if (lhs.ToBool())
+            return new SBool(true);
+        
+        var rhs = Visit(context.expr(1));
+        return new SBool(rhs.ToBool());
+    }
+    
+    //Visit the IdentifierIndexExpr and use the right value to index the left as a table
+    public override IValue VisitIdentifierIndexExpr(ShaellParser.IdentifierIndexExprContext context)
+    {
+        var lhs = Visit(context.expr());
+        var rhs = context.identifier().GetText();
+
+        return lhs.ToTable().GetValue(new SString(rhs));
+    }
+    
+    //Visit the TrueBoolean and return the value of true
+    public override IValue VisitTrueBoolean(ShaellParser.TrueBooleanContext context)
+    {
+        return new SBool(true);
+    }
+    
+    //Visit the FalseBoolean and return the value of false
+    public override IValue VisitFalseBoolean(ShaellParser.FalseBooleanContext context)
+    {
+        return new SBool(false);
+    }
+    
 }

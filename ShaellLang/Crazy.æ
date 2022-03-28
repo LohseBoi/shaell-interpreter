@@ -11,6 +11,8 @@ end
 
 $print("Hello from shæll!")
 
+$str:length()
+
 $printMenBedre = $print
 
 $printMenBedre("Hej fra bedre print")
@@ -28,4 +30,21 @@ $print(
     "!"
 )
 
+$obj = $CreateTable()
+
+$obj:thing = 1
+
+$print("haha ", $obj:thing + 2, " benis")
+
+
 $print("haha benis")
+
+if true then
+    $print("haha benis")
+end
+
+if false then
+    $print("nej ikke benis")
+end
+
+

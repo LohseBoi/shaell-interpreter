@@ -2,7 +2,7 @@
 
 namespace ShaellLang;
 
-public class SString : IValue
+public class SString : IValue, IKeyable
 {
     private string _val;
 
@@ -17,6 +17,13 @@ public class SString : IValue
     public IFunction ToFunction() => throw new Exception("Cannot convert string to function");
 
     public SString ToSString() => this;
+    public ITable ToTable()
+    {
+        //Should return a table which can give length and so on for a string
+        throw new Exception("Cannot convert string to table");
+    }
 
     public string Val => _val;
+    public string KeyValue => _val;
+    public string UniquePrefix => "S";
 }

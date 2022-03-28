@@ -29,9 +29,9 @@ namespace ShaellLang
             
             ShaellParser.ProgContext progContext = shaellParser.prog();
             var executer = new ExecutionVisitor();
-            executer.SetGlobal("$print", new NativeFunc(delegate(ICollection<IValue> values)
+            executer.SetGlobal("$print", new NativeFunc(delegate(ICollection<IValue> args)
             {
-                foreach (var value in values)
+                foreach (var value in args)
                 {
                     Console.Write(value.ToSString().Val);
                 }
@@ -39,6 +39,12 @@ namespace ShaellLang
 
                 return new SNull();
             }, 0));
+            
+            executer.SetGlobal("$CreateTable", new NativeFunc(delegate(ICollection<IValue> values)
+            {
+                return new UserTable();
+            }, 1));
+            
             executer.Visit(progContext);
             
         }

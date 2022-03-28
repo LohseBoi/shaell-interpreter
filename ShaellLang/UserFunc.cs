@@ -55,4 +55,9 @@ public class UserFunc : IFunction
     {
         throw new Exception("Type error, function cannot be converted to a string");
     }
+
+    public ITable ToTable()
+    {
+        throw new Exception("Type error: function cannot be converted to table");
+    }
 }

@@ -63,13 +63,13 @@ BOREQ: '|=';
 MODEQ: '%=';
 RSHIFTEQ: '>>=';
 LSHIFTEQ: '<<=';
+FALSE: 'false';
+TRUE: 'true';
 FILEIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
 VARIDENTFIER: DOLLAR [a-zA-Z0-9_.$]*;
 NUMBER: [0-9]+('.'[0-9]+)?;
 DQUOTE: '"';
 SQUOTE: '\'';
-FALSE: 'false';
-TRUE: 'true';
 STRINGLITERAL: '"' ~('"' | '\n')* '"';
 COMMENT : '#' ~[\n]* {this._tokenStartCharPositionInLine == 0}?;
 
@@ -82,12 +82,14 @@ Lacks functions and comments
 prog: stmts;
 stmts: stmt*;
 stmt: ifStmt | forLoop | whileLoop | returnStatement | functionDefinition | expr;
-boolean: TRUE | FALSE;
+boolean: 
+    TRUE # TrueBoolean 
+    | FALSE # FalseBoolean;
 expr:  
     COMMENT # CommentExpr
     | STRINGLITERAL # StringLiteralExpr
     | NUMBER # NumberExpr
-    | boolean # BooleanExpr
+	| boolean # BooleanExpr
 	| identifier # IdentifierExpr
 	| LPAREN expr RPAREN # Parenthesis
 	|<assoc=right> DEREF expr # DerefExpr

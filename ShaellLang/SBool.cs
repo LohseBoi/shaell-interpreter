@@ -19,4 +19,8 @@ public class SBool : IValue
     }
 
     public SString ToSString() => new SString(_value ? "true" : "false");
+    public ITable ToTable()
+    {
+        throw new Exception("Type error: bool cannot be converted to table");
+    }
 }

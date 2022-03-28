@@ -22,5 +22,9 @@ namespace ShaellLang
         }
 
         public SString ToSString() => new SString("null");
+        public ITable ToTable()
+        {
+            throw new Exception("Type error, null cannot be converted to table");
+        }
     }
 }

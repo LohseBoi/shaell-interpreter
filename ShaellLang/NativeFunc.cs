@@ -34,5 +34,10 @@ namespace ShaellLang
 		{
 			throw new Exception("Type error, function cannot be converted to string");
 		}
+
+		public ITable ToTable()
+		{
+			throw new Exception("Type error, function cannot be converted to table");
+		}
 	}
 }

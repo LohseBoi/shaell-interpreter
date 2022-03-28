@@ -12,5 +12,7 @@ namespace ShaellLang
 		IFunction ToFunction();
 
 		SString ToSString();
+
+		ITable ToTable();
 	}
 }

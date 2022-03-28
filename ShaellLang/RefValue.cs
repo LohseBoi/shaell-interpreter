@@ -38,4 +38,9 @@ public class RefValue : IValue
     {
         return _realValue.ToSString();
     }
+
+    public ITable ToTable()
+    {
+        return _realValue.ToTable();
+    }
 }
