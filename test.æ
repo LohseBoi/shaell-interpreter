@@ -1,0 +1,6 @@
+$print("Hello")
+$lol = "test"
+@lol:delete()
+
+#@"test":delete()
+#$print(@"test":size)
