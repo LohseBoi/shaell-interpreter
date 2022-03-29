@@ -254,7 +254,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
     public override IValue VisitFunctionCallExpr(ShaellParser.FunctionCallExprContext context)
     {
-
         var lhs = Visit(context.expr()).ToFunction();
         
         var args = new List<IValue>();
@@ -321,16 +320,10 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     }
     
     //Visit the TrueBoolean and return the value of true
-    public override IValue VisitTrueBoolean(ShaellParser.TrueBooleanContext context)
-    {
-        return new SBool(true);
-    }
+    public override IValue VisitTrueBoolean(ShaellParser.TrueBooleanContext context) => new SBool(true);
     
     //Visit the FalseBoolean and return the value of false
-    public override IValue VisitFalseBoolean(ShaellParser.FalseBooleanContext context)
-    {
-        return new SBool(false);
-    }
+    public override IValue VisitFalseBoolean(ShaellParser.FalseBooleanContext context) => new SBool(false);
     
     //Vist the SubScriptExpr and return the value of the left side with the right side as index
     public override IValue VisitSubScriptExpr(ShaellParser.SubScriptExprContext context)
@@ -360,4 +353,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return new SBool(lhs.ToNumber() < rhs.ToNumber());
     }
     
+    //Implement DerefExpr
+    public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(Visit(context.expr()));
+    public override IValue VisitFileIdentifier(ShaellParser.FileIdentifierContext context) => new SFile(context.GetText());
 }
