@@ -18,9 +18,9 @@ public class SFile : NativeTable, IValue
 
     private void GenerateFileValues()
     {
-        SetValue("read", new RefValue(new NativeFunc( (x) =>
+        SetValue("read", new RefValue(new NativeFunc( argCollection =>
         {
-            long[] args = x.Select(y => y.ToNumber().ToInteger()).ToArray();
+            long[] args = argCollection.Select(y => y.ToNumber().ToInteger()).ToArray();
             FileStream fs = new FileInfo(_path).OpenRead();
             fs.Seek(args[1], SeekOrigin.Begin);
             
@@ -28,38 +28,37 @@ public class SFile : NativeTable, IValue
             fs.Read(buffer, 0, (int)args[0]);
 
             return new BString(buffer);
-            //return new SString(System.Text.Encoding.Default.GetString(buffer)); //TODO: BString
         }, 2)));
-        SetValue("delete", new RefValue(new NativeFunc( (x) =>
+        SetValue("delete", new RefValue(new NativeFunc( argCollection =>
         {
             Console.WriteLine(_path);
             File.Delete(_path);
             return new SNull();
         }, 0)));
-        SetValue("readToEnd", new RefValue(new NativeFunc( (x) =>
+        SetValue("readToEnd", new RefValue(new NativeFunc( argCollection =>
         {
             if (!File.Exists(_path))
                 throw new Exception("No file");
             return new BString(File.ReadAllText(_path));
         }, 0)));
-        SetValue("append", new RefValue(new NativeFunc( (x) =>
+        SetValue("append", new RefValue(new NativeFunc( argCollection =>
         {
             StreamWriter f = new FileInfo(_path).AppendText();
-            f.WriteLine(x.ToArray()[0].ToSString().Val);
+            f.WriteLine(argCollection.ToArray()[0].ToSString().Val);
             f.Flush();
             return new SNull();
         }, 1)));
-        SetValue("openReadStream", new RefValue(new NativeFunc( (x) =>
+        SetValue("openReadStream", new RefValue(new NativeFunc( argCollection =>
         {
             throw new NotImplementedException();
 
         }, 0)));
-        SetValue("openWriteStream", new RefValue(new NativeFunc( (x) =>
+        SetValue("openWriteStream", new RefValue(new NativeFunc( argCollection =>
         {
             throw new NotImplementedException();
         }, 0)));
-        SetValue("size", new RefValue(new NativeFunc( (x) => new Number(new FileInfo(_path).Length), 2)));
-        SetValue("exists", new RefValue(new NativeFunc( (x) => new SBool(File.Exists(_path)), 0)));
+        SetValue("size", new RefValue(new NativeFunc( argCollection => new Number(new FileInfo(_path).Length), 2)));
+        SetValue("exists", new RefValue(new NativeFunc( argCollection => new SBool(File.Exists(_path)), 0)));
     }
 
     public bool ToBool() => true;
