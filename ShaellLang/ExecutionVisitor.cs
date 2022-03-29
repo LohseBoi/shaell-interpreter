@@ -332,4 +332,32 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return new SBool(false);
     }
     
+    //Vist the SubScriptExpr and return the value of the left side with the right side as index
+    public override IValue VisitSubScriptExpr(ShaellParser.SubScriptExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        if (rhs is RefValue refValue)
+        {
+            rhs = refValue.Get();
+        }
+
+        if (rhs is IKeyable rhsKeyable)
+        {
+            return lhs.ToTable().GetValue(rhsKeyable);
+        }
+        
+        throw new Exception("Cannot index with a non-keyable value");
+    }
+    
+    //Implement less than operator
+    public override IValue VisitLTExpr(ShaellParser.LTExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return new SBool(lhs.ToNumber() < rhs.ToNumber());
+    }
+    
 }

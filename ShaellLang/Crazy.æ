@@ -9,9 +9,30 @@ fn $funcMedReturVaerdi($n)
     return 2 + $n
 end
 
+fn $callbackfn($n)
+    fn $funktionDerPrintern($n)
+        $print($n)
+    end
+    return $funktionDerPrintern;
+end
+
+fn $medCallback($callback)
+    $callback(2)
+end
+
+$medCallback($callbackfn(5))
+
 $print("Hello from shæll!")
 
-#$str:length()
+$str = "abcdefg"
+
+$i = 0;
+while $i < $str:length() do
+    $print($str[$i])
+    $i = $i + 1
+end
+
+$print($str[3 + 1])
 
 $printMenBedre = $print
 
