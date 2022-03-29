@@ -5,16 +5,16 @@ using System.Linq;
 
 namespace ShaellLang;
 
-public class FileObject : NativeTable, IValue
+public class SFile : NativeTable, IValue
 {
     private string _path;
 
-    public FileObject(string path)
+    public SFile(string path)
     {
         _path = path;
         GenerateFileValues();
     }
-    public FileObject(IValue path) : this(path.ToSString().Val) { }
+    public SFile(IValue path) : this(path.ToSString().Val) { }
 
     private void GenerateFileValues()
     {

@@ -1,3 +1,0 @@
-$test = temp:readToEnd()
-$print($test)
-$print(temp:readToEnd())
