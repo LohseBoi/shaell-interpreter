@@ -87,5 +87,30 @@ namespace ShaellLang
             }
             return new Number(-a.ToInteger());
         }
+        
+        //Implement less than operator and convert to floating and integer comparison correctly
+        public static bool operator <(Number a, Number b)
+        {
+            if (a.IsFloating && b.IsFloating)
+                return a.ToFloating() < b.ToFloating();
+            if (a.IsFloating && b.IsInteger)
+                return a.ToFloating() < b.ToInteger();
+            if (a.IsInteger && b.IsFloating)
+                return a.ToInteger() < b.ToFloating();
+            return a.ToInteger() < b.ToInteger();
+        }
+        
+        //Implement greater than operator and convert to floating and integer comparison correctly
+        public static bool operator >(Number a, Number b)
+        {
+            if (a.IsFloating && b.IsFloating)
+                return a.ToFloating() > b.ToFloating();
+            if (a.IsFloating && b.IsInteger)
+                return a.ToFloating() > b.ToInteger();
+            if (a.IsInteger && b.IsFloating)
+                return a.ToInteger() > b.ToFloating();
+            return a.ToInteger() > b.ToInteger();
+        }
+        
     }
 }
