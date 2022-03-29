@@ -1,6 +1,3 @@
-$print("Hello")
-$lol = "test"
-@lol:delete()
-
-#@"test":delete()
-#$print(@"test":size)
+$test = temp:readToEnd()
+$print($test)
+$print(temp:readToEnd())

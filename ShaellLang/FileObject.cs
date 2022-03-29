@@ -5,90 +5,73 @@ using System.Linq;
 
 namespace ShaellLang;
 
-public class FileObject : IValue, ITable
+public class FileObject : NativeTable, IValue
 {
-    private Dictionary<string, RefValue> values;
-    private string KeyValue(IKeyable key) => key.UniquePrefix + key.KeyValue;
     private string _path;
 
     public FileObject(string path)
     {
         _path = path;
-        values = GenerateFileValues();
+        GenerateFileValues();
     }
+    public FileObject(IValue path) : this(path.ToSString().Val) { }
 
-    private Dictionary<string, RefValue> GenerateFileValues()
+    private void GenerateFileValues()
     {
-        Dictionary<string, RefValue> _out = new Dictionary<string, RefValue>();
-        
-        _out.Add("read", new RefValue(new NativeFunc( (x) =>
+        SetValue("read", new RefValue(new NativeFunc( (x) =>
         {
-            if (!File.Exists(_path))
-                throw new NotImplementedException();
-            //return new BString();
-            //File.READLALLA;
-            return new SNull();
-        }, 2)));
-        _out.Add("readToEnd", new RefValue(new NativeFunc( (x) =>
-        {
-            if (!File.Exists(_path))
-                throw new NotImplementedException();
-                //return new BString();
+            long[] args = x.Select(y => y.ToNumber().ToInteger()).ToArray();
+            FileStream fs = new FileInfo(_path).OpenRead();
+            fs.Seek(args[1], SeekOrigin.Begin);
+            
+            byte[] buffer = new byte[args[0]];
+            fs.Read(buffer, 0, (int)args[0]);
 
-                File.ReadAllText(_path); //TODO: use as argument for BString and return that
-            return new SNull();
-        }, 0)));
-        _out.Add("append", new RefValue(new NativeFunc( (x) =>
+            return new BString(buffer);
+            //return new SString(System.Text.Encoding.Default.GetString(buffer)); //TODO: BString
+        }, 2)));
+        SetValue("delete", new RefValue(new NativeFunc( (x) =>
         {
-            //File.AppendAllText(_path, x.ToString());
-            File.AppendAllLines(_path, x.Select( y => y.ToString()));
-            return new SNull();
-        }, 1)));
-        _out.Add("delete", new RefValue(new NativeFunc( (x) =>
-        {
+            Console.WriteLine(_path);
             File.Delete(_path);
             return new SNull();
         }, 0)));
-        _out.Add("openReadStream", new RefValue(new NativeFunc( (x) =>
+        SetValue("readToEnd", new RefValue(new NativeFunc( (x) =>
+        {
+            if (!File.Exists(_path))
+                throw new Exception("No file");
+            return new BString(File.ReadAllText(_path));
+        }, 0)));
+        SetValue("append", new RefValue(new NativeFunc( (x) =>
+        {
+            StreamWriter f = new FileInfo(_path).AppendText();
+            f.WriteLine(x.ToArray()[0].ToSString().Val);
+            f.Flush();
+            return new SNull();
+        }, 1)));
+        SetValue("openReadStream", new RefValue(new NativeFunc( (x) =>
         {
             throw new NotImplementedException();
 
         }, 0)));
-        _out.Add("openWriteStream", new RefValue(new NativeFunc( (x) =>
+        SetValue("openWriteStream", new RefValue(new NativeFunc( (x) =>
         {
             throw new NotImplementedException();
         }, 0)));
-        _out.Add("size", new RefValue(new NativeFunc( (x) => new Number(new FileInfo(_path).Length), 2)));
-        _out.Add("exists", new RefValue(new NativeFunc( (x) => new SBool(File.Exists(_path)), 0)));
-        return _out;
+        SetValue("size", new RefValue(new NativeFunc( (x) => new Number(new FileInfo(_path).Length), 2)));
+        SetValue("exists", new RefValue(new NativeFunc( (x) => new SBool(File.Exists(_path)), 0)));
     }
 
-    public bool ToBool() => File.Exists(_path);
+    public bool ToBool() => true;
 
-    public Number ToNumber()
-    {
-        throw new NotImplementedException();
-    }
+    public Number ToNumber() => throw new Exception("Type error, File cannot be convert to number.");
 
     public IFunction ToFunction()
-    {
-        throw new Exception("Type error, File cannot be converted to function");
+    { //TODO: Ext. function call
+        throw new Exception("Ext. func");
     }
 
     public SString ToSString() => new (_path);
 
     public ITable ToTable() => this;
-
-    public RefValue GetValue(IKeyable key)
-    {
-        bool exists = values.TryGetValue(KeyValue(key), out RefValue value);
-        if (exists)
-            return value;
-        throw new Exception($"No value with the given key ({key})");
-    }
-
-    public void RemoveValue(IKeyable key)
-    {
-        throw new System.NotImplementedException();
-    }
 }
