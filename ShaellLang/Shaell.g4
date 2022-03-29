@@ -65,6 +65,7 @@ RSHIFTEQ: '>>=';
 LSHIFTEQ: '<<=';
 FALSE: 'false';
 TRUE: 'true';
+FIELDIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
 FILEIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
 VARIDENTFIER: DOLLAR [a-zA-Z0-9_.$]*;
 NUMBER: [0-9]+('.'[0-9]+)?;
@@ -89,6 +90,7 @@ expr: STRINGLITERAL # StringLiteralExpr
 	| boolean # BooleanExpr
 	| identifier # IdentifierExpr
 	| LPAREN expr RPAREN # Parenthesis
+	| LCURL (objfields ASSIGN expr (COMMA objfields ASSIGN expr)*)? RCURL #ObjectLiteral
 	|<assoc=right> DEREF expr # DerefExpr
 	|<assoc=right> LNOT expr # LnotExpr
 	|<assoc=right> BNOT expr # BnotExpr
@@ -112,12 +114,16 @@ expr: STRINGLITERAL # StringLiteralExpr
     | expr PIPE expr # PIPEExpr
 	|<assoc=right> expr ASSIGN expr # AssignExpr
 	;
-
+objfields:
+    identifier 
+    | LSQUACKET expr RSQUACKET
+    ;
 innerArgList: (expr (COMMA expr)*)?;
 innerFormalArgList: (VARIDENTFIER (COMMA VARIDENTFIER)*)?;
 identifier: 
     FILEIDENTFIER #FileIdentifier
     | VARIDENTFIER #VarIdentifier
+    | FIELDIDENTFIER # FieldIdentifier
     ;
 ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
