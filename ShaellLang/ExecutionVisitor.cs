@@ -368,32 +368,9 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return _out;
     }
     
-    public override IValue VisitObjfields(ShaellParser.ObjfieldsContext context)
-    {
-        try
-        {
-            return Visit(context.identifier());
-        }
-        catch
-        {
-            return Visit(context.expr());
-        }
-    }
+    public override IValue VisitFieldExpr(ShaellParser.FieldExprContext context) => Visit(context.expr());
 
-    public override IValue VisitFieldIdentifier(ShaellParser.FieldIdentifierContext context)
-    {
-        //return new SString(context.GetText());
-        //for differentiating between numbers and strings, not used currently
-        try
-        {
-            return new Number(int.Parse(context.GetText()));
-        }
-        catch
-        {
-            return new SString(context.GetText());
-        }
-        
-    }
+    public override IValue VisitFieldIdentifier(ShaellParser.FieldIdentifierContext context) => new SString(context.GetText());
     public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(Visit(context.expr()));
     public override IValue VisitFileIdentifier(ShaellParser.FileIdentifierContext context) => new SFile(context.GetText());
 }

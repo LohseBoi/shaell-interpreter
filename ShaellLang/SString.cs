@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ShaellLang;
 
@@ -11,7 +12,12 @@ public class SString : NativeTable, IValue, IKeyable
     {
         _val = str;
         
-        this.SetValue("length", new NativeFunc(lengthCallHandler, 0));
+        SetValue("length", new NativeFunc(lengthCallHandler, 0));
+        SetValue("substring", new NativeFunc(argCollection =>
+        {
+            Number[] args = argCollection.ToArray().Select(x => x.ToNumber()).ToArray();
+            return new SString(Val.Substring((int)args[0].ToInteger(), (int)args[1].ToInteger()));
+        }, 2));
     }
 
     private IValue lengthCallHandler(ICollection<IValue> args)

@@ -65,7 +65,6 @@ RSHIFTEQ: '>>=';
 LSHIFTEQ: '<<=';
 FALSE: 'false';
 TRUE: 'true';
-FIELDIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
 FILEIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
 VARIDENTFIER: DOLLAR [a-zA-Z0-9_.$]*;
 NUMBER: [0-9]+('.'[0-9]+)?;
@@ -115,15 +114,14 @@ expr: STRINGLITERAL # StringLiteralExpr
 	|<assoc=right> expr ASSIGN expr # AssignExpr
 	;
 objfields:
-    identifier 
-    | LSQUACKET expr RSQUACKET
+    FILEIDENTFIER # FieldIdentifier
+    | LSQUACKET expr RSQUACKET #FieldExpr
     ;
 innerArgList: (expr (COMMA expr)*)?;
 innerFormalArgList: (VARIDENTFIER (COMMA VARIDENTFIER)*)?;
 identifier: 
     FILEIDENTFIER #FileIdentifier
     | VARIDENTFIER #VarIdentifier
-    | FIELDIDENTFIER # FieldIdentifier
     ;
 ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
