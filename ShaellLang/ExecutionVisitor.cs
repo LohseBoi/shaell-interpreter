@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Antlr4.Runtime.Tree;
 
 namespace ShaellLang;
 
@@ -203,7 +205,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     {
         throw new Exception("nejnejnej");
     }
-    
+
     public override IValue VisitAssignExpr(ShaellParser.AssignExprContext context)
     {
         var lhs = Visit(context.expr(0));
@@ -314,8 +316,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitIdentifierIndexExpr(ShaellParser.IdentifierIndexExprContext context)
     {
         var lhs = Visit(context.expr());
-        var rhs = context.identifier().GetText();
-
+        var rhs = context.identifier().GetText(); //TODO: Views numbers as empty strings
         return lhs.ToTable().GetValue(new SString(rhs));
     }
     
@@ -354,6 +355,22 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     }
     
     //Implement DerefExpr
+    public override IValue VisitObjectLiteral(ShaellParser.ObjectLiteralContext context)
+    {
+        UserTable _out = new UserTable();
+        for (int i = 0; i < context.expr().Length; i++)
+        {
+            IValue key = Visit(context.objfields()[i]);
+            RefValue value = _out.GetValue(key as IKeyable);
+            value.Set(Visit(context.expr()[i]));
+        }
+
+        return _out;
+    }
+    
+    public override IValue VisitFieldExpr(ShaellParser.FieldExprContext context) => Visit(context.expr());
+
+    public override IValue VisitFieldIdentifier(ShaellParser.FieldIdentifierContext context) => new SString(context.GetText());
     public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(Visit(context.expr()));
     public override IValue VisitFileIdentifier(ShaellParser.FileIdentifierContext context) => new SFile(context.GetText());
 }

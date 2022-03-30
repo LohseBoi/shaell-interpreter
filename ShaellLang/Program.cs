@@ -35,7 +35,7 @@ namespace ShaellLang
                 {
                     Console.Write(value.ToSString().Val);
                 }
-                //Console.WriteLine();
+                Console.WriteLine();
 
                 return new SNull();
             }, 0));

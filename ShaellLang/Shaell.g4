@@ -89,6 +89,7 @@ expr: STRINGLITERAL # StringLiteralExpr
 	| boolean # BooleanExpr
 	| identifier # IdentifierExpr
 	| LPAREN expr RPAREN # Parenthesis
+	| LCURL (objfields ASSIGN expr (COMMA objfields ASSIGN expr)*)? RCURL #ObjectLiteral
 	|<assoc=right> DEREF expr # DerefExpr
 	|<assoc=right> LNOT expr # LnotExpr
 	|<assoc=right> BNOT expr # BnotExpr
@@ -112,7 +113,10 @@ expr: STRINGLITERAL # StringLiteralExpr
     | expr PIPE expr # PIPEExpr
 	|<assoc=right> expr ASSIGN expr # AssignExpr
 	;
-
+objfields:
+    FILEIDENTFIER # FieldIdentifier
+    | LSQUACKET expr RSQUACKET #FieldExpr
+    ;
 innerArgList: (expr (COMMA expr)*)?;
 innerFormalArgList: (VARIDENTFIER (COMMA VARIDENTFIER)*)?;
 identifier: 
