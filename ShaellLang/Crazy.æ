@@ -68,4 +68,8 @@ if false then
     $print("nej ikke benis")
 end
 
+$var = 123:sqrt()
 
+$print($var)
+$print(23.12:log2())
+$print(2313.32:log(24))
