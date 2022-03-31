@@ -4,36 +4,47 @@ using System.Linq;
 
 namespace ShaellLang;
 
-public class SString : NativeTable, IValue, IKeyable
+public class SString : BaseValue, ITable, IKeyable
 {
     private string _val;
-
+    private NativeTable _nativeTable;
+    
     public SString(string str)
+        : base("string")
     {
         _val = str;
+        _nativeTable = new NativeTable();
         
-        SetValue("length", new NativeFunc(lengthCallHandler, 0));
-        SetValue("substring", new NativeFunc(argCollection =>
-        {
-            Number[] args = argCollection.ToArray().Select(x => x.ToNumber()).ToArray();
-            return new SString(Val.Substring((int)args[0].ToInteger(), (int)args[1].ToInteger()));
-        }, 2));
+        _nativeTable.SetValue("length", new NativeFunc(lengthCallHandler, 0));
+        _nativeTable.SetValue("substring", new NativeFunc(SubStringFunc, 2));
     }
 
-    private IValue lengthCallHandler(ICollection<IValue> args)
+    private IValue SubStringFunc(IEnumerable<IValue> argCollection)
+    {
+        Number[] args = argCollection.ToArray().Select(x => x.ToNumber()).ToArray();
+        return new SString(Val.Substring((int) args[0].ToInteger(), (int) args[1].ToInteger()));
+    }
+
+    private IValue lengthCallHandler(IEnumerable<IValue> args)
     {
         return new Number(this._val.Length);
     }
 
-    public bool ToBool() => true;
-    public Number ToNumber() => new Number(int.Parse(_val));
+    public override bool ToBool() => true;
+    public override Number ToNumber() => new Number(int.Parse(_val));
+    public override SString ToSString() => this;
+    public override ITable ToTable() => this;
+    public override bool IsEqual(IValue other)
+    {
+        if (other is SString otherString)
+        {
+            return _val == otherString._val;
+        }
 
-    public IFunction ToFunction() => throw new Exception("Cannot convert string to function");
+        return false;
+    }
 
-    public SString ToSString() => this;
-    public ITable ToTable() => this;
-    
-    public override RefValue GetValue(IKeyable key)
+    public RefValue GetValue(IKeyable key)
     {
         if (key is Number numberKey)
         {
@@ -47,7 +58,12 @@ public class SString : NativeTable, IValue, IKeyable
                 }
             }
         }
-        return base.GetValue(key);
+        return _nativeTable.GetValue(key);
+    }
+
+    public void RemoveValue(IKeyable key)
+    {
+        return;
     }
 
     public string Val => _val;

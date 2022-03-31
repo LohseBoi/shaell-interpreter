@@ -21,7 +21,7 @@ namespace ShaellLang
             var filename = args[0];
             
             var content = File.ReadAllText(filename);
-
+            
             try
             {
                 AntlrInputStream inputStream = new AntlrInputStream(content);
@@ -32,7 +32,7 @@ namespace ShaellLang
             
                 ShaellParser.ProgContext progContext = shaellParser.prog();
                 var executer = new ExecutionVisitor();
-                executer.SetGlobal("$print", new NativeFunc(delegate(ICollection<IValue> args)
+                executer.SetGlobal("$print", new NativeFunc(delegate(IEnumerable<IValue> args)
                 {
                     foreach (var value in args)
                     {
@@ -42,12 +42,15 @@ namespace ShaellLang
 
                     return new SNull();
                 }, 0));
+                
+                executer.SetGlobal("$T", TableLib.CreateLib());
             
-                executer.SetGlobal("$CreateTable", new NativeFunc(delegate(ICollection<IValue> values)
+                executer.SetGlobal("$debug_break", new NativeFunc(delegate(IEnumerable<IValue> args)
                 {
-                    return new UserTable();
-                }, 1));
-            
+                    Console.WriteLine("Debug break");
+                    return new SNull();
+                }, 0));
+
                 executer.Visit(progContext);
             }
             catch (SyntaxErrorException e)

@@ -241,8 +241,15 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     {
         var lhs = Visit(context.expr(0));
         var rhs = Visit(context.expr(1));
-
-        return new SBool(lhs.ToNumber() == rhs.ToNumber());
+        if (lhs is RefValue lhsRef)
+        {
+            lhs = lhsRef.Unpack();
+        }  
+        if (rhs is RefValue rhsRef)
+        {
+            rhs = rhsRef.Unpack();
+        }
+        return new SBool(lhs.IsEqual(rhs));
     }
 
     public override IValue VisitNEQExpr(ShaellParser.NEQExprContext context)
@@ -383,6 +390,8 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitFieldExpr(ShaellParser.FieldExprContext context) => Visit(context.expr());
 
     public override IValue VisitFieldIdentifier(ShaellParser.FieldIdentifierContext context) => new SString(context.GetText());
-    public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(Visit(context.expr()));
+    public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(Visit(context.expr()).ToSString().Val);
     public override IValue VisitFileIdentifier(ShaellParser.FileIdentifierContext context) => new SFile(context.GetText());
+    
+    public override IValue VisitNullExpr(ShaellParser.NullExprContext context) => new SNull();
 }

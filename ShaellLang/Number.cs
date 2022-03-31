@@ -4,18 +4,20 @@ using System.Globalization;
 
 namespace ShaellLang
 {
-    public class Number : IValue, IKeyable
+    public class Number : BaseValue, IKeyable
     {
         private dynamic _numberRepresentation;
 
         private static NumberTable _numberTable = NumberTable.getInstance();
         
         public Number(long value)
+            : base("integernumber")
         {
             _numberRepresentation = value;
         }
 
         public Number(double value)
+            : base("floatingnumber")
         {
             _numberRepresentation = value;
         }
@@ -29,19 +31,11 @@ namespace ShaellLang
         public string KeyValue => Convert.ToString(_numberRepresentation);
         public string UniquePrefix => "N";
 
-        public bool ToBool() => true;
+        public override bool ToBool() => true;
 
-        public Number ToNumber()
-        {
-            return this;
-        }
+        public override Number ToNumber() => this;
 
-        public IFunction ToFunction()
-        {
-            throw new Exception("Type error, number cannot be converted to function");
-        }
-
-        public SString ToSString()
+        public override SString ToSString()
         {
             if (IsFloating)
             {
@@ -53,7 +47,7 @@ namespace ShaellLang
             }
         }
 
-        public ITable ToTable()
+        public override ITable ToTable()
         {
             _numberTable.Number = this; //TODO: this is a hack, fix it
             return _numberTable;
@@ -196,6 +190,16 @@ namespace ShaellLang
             if (a.IsInteger && b.IsFloating)
                 return a.ToInteger() >= b.ToFloating();
             return a.ToInteger() >= b.ToInteger();
+        }
+        
+        public override bool IsEqual(IValue other)
+        {
+            if (other is Number otherNumber)
+            {
+                return this == otherNumber;
+            }
+
+            return false;
         }
         
         public static bool operator ==(Number a, Number b)

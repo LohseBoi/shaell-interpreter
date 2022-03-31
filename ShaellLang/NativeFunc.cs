@@ -4,12 +4,13 @@ using System.Collections;
 
 namespace ShaellLang 
 {
-	public delegate IValue NativeFuncCallHandler(ICollection<IValue> args);
-	public class NativeFunc : IFunction 
+	public delegate IValue NativeFuncCallHandler(IEnumerable<IValue> args);
+	public class NativeFunc : BaseValue, IFunction 
 	{
 		private NativeFuncCallHandler _callHandler;
 
 		public NativeFunc(NativeFuncCallHandler callHandler, uint argumentCount)
+			: base("nativefunc")
 		{
 			_callHandler = callHandler;
 			ArgumentCount = argumentCount;
@@ -17,27 +18,17 @@ namespace ShaellLang
 
 		//Implement IFunction
 		
-		public IValue Call(ICollection<IValue> args) => _callHandler(args);
+		public IValue Call(IEnumerable<IValue> args) => _callHandler(args);
 
 		public uint ArgumentCount {  get; private set; }
 		
-		public bool ToBool() => true;
-
-		public Number ToNumber()
+		public override bool ToBool() => true;
+		
+		public override IFunction ToFunction() => this;
+		
+		public override bool IsEqual(IValue other)
 		{
-			throw new Exception("Type error, function cannot be converted to number");
-		}
-
-		public IFunction ToFunction() => this;
-
-		public SString ToSString()
-		{
-			throw new Exception("Type error, function cannot be converted to string");
-		}
-
-		public ITable ToTable()
-		{
-			throw new Exception("Type error, function cannot be converted to table");
+			return other == this;
 		}
 	}
 }

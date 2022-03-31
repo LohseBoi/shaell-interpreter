@@ -3,28 +3,21 @@ using System;
 namespace ShaellLang
 {
     //Snull becuase Null is taken
-    public class SNull : IValue
+    public class SNull : BaseValue
     {
         public SNull()
+            : base("null")
         {
             
         }
 
-        public bool ToBool() => false;
-        public Number ToNumber()
-        {
-            throw new Exception("Cannot implicitly null to number");
-        }
+        public override bool ToBool() => false;
 
-        public IFunction ToFunction()
+        public override SString ToSString() => new SString("null");
+        
+        public override bool IsEqual(IValue other)
         {
-            throw new Exception("Type error, null cannot be converted to function");
-        }
-
-        public SString ToSString() => new SString("null");
-        public ITable ToTable()
-        {
-            throw new Exception("Type error, null cannot be converted to table");
+            return other is SNull;
         }
     }
 }

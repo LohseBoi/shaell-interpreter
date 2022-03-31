@@ -2,25 +2,23 @@
 
 namespace ShaellLang;
 
-public class SBool : IValue
+public class SBool : BaseValue
 {
     private bool _value;
     public SBool(bool value)
+        : base("bool")
     {
         _value = value;
     }
 
 
-    public bool ToBool() => _value;
-    public Number ToNumber() => _value ? new Number(1) : new Number(0);
-    public IFunction ToFunction()
-    {
-        throw new Exception("Type error, bool cannot be converted to function");
-    }
+    public override bool ToBool() => _value;
+    public override Number ToNumber() => _value ? new Number(1) : new Number(0);
 
-    public SString ToSString() => new SString(_value ? "true" : "false");
-    public ITable ToTable()
+    public override SString ToSString() => new SString(_value ? "true" : "false");
+
+    public override bool IsEqual(IValue other)
     {
-        throw new Exception("Type error: bool cannot be converted to table");
+        return other.ToBool() == _value;
     }
 }

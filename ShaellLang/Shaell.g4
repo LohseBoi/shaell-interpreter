@@ -66,6 +66,7 @@ RSHIFTEQ: '>>=';
 LSHIFTEQ: '<<=';
 FALSE: 'false';
 TRUE: 'true';
+NULL: 'null';
 FILEIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
 VARIDENTFIER: DOLLAR [a-zA-Z0-9_.$]*;
 NUMBER: [0-9]+('.'[0-9]+)?;
@@ -87,6 +88,7 @@ boolean: TRUE # TrueBoolean
     ;
 expr: STRINGLITERAL # StringLiteralExpr
     | NUMBER # NumberExpr
+    | NULL # NullExpr
 	| boolean # BooleanExpr
 	| identifier # IdentifierExpr
 	| LPAREN expr RPAREN # Parenthesis
