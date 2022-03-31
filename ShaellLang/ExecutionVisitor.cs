@@ -159,15 +159,26 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return null;
     }
 
+    public override IValue VisitForLoop(ShaellParser.ForLoopContext context)
+    {
+        Visit(context.expr()[0]);
+        while (Visit(context.expr()[1]).ToBool())
+        {
+            var rv = VisitStmts(context.stmts());
+            if (_shouldReturn)
+                return rv;
+            Visit(context.expr()[2]);
+        }
+        return null;
+    }
+
     public override IValue VisitWhileLoop(ShaellParser.WhileLoopContext context)
     {
         while (Visit(context.expr()).ToBool())
         {
             var rv = VisitStmts(context.stmts());
             if (_shouldReturn)
-            {
                 return rv;
-            }
         }
 
         return null;
