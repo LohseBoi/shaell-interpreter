@@ -32,6 +32,7 @@ DOLLAR: '$';
 LNOT: '!';
 BNOT: '~';
 MULT: '*';
+POW: '**';
 DIV: '/';
 MOD: '%';
 PLUS: '+';
@@ -98,6 +99,8 @@ expr: STRINGLITERAL # StringLiteralExpr
 	| expr COLON identifier # IdentifierIndexExpr
 	| expr LSQUACKET expr RSQUACKET # SubScriptExpr
 	| expr LPAREN innerArgList RPAREN # FunctionCallExpr
+	| expr POW expr # PowExpr
+	| expr MOD expr # ModExpr
 	| expr DIV expr # DivExpr
 	| expr MULT expr # MultExpr
     | expr PLUS expr # AddExpr

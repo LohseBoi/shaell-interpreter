@@ -6,84 +6,6 @@ using Antlr4.Runtime.Tree;
 
 namespace ShaellLang;
 
-public class ScopeContext
-{
-    private Dictionary<string, RefValue> _values;
-
-    public ScopeContext()
-    {
-        _values = new Dictionary<string, RefValue>();
-    }
-    
-    public RefValue GetValue(string key)
-    {
-        bool found = _values.TryGetValue(key, out RefValue foundValue);
-
-        return found ? foundValue : null;
-    }
-
-    public RefValue SetValue(string key, IValue val)
-    {
-        RefValue rv = new RefValue(val);
-        _values[key] = rv;
-        return rv;
-    }
-}
-
-public class ScopeManager
-{
-    private List<ScopeContext> _scopes;
-
-    public ScopeManager()
-    {
-        _scopes = new List<ScopeContext>();
-    }
-
-    public ScopeManager CopyScopes()
-    {
-        ScopeManager rv = new ScopeManager();
-        foreach (var scope in _scopes)
-        {
-            rv.PushScope(scope);
-        }
-
-        return rv;
-    }
-    
-    public RefValue GetValue(string key)
-    {
-        foreach (var scope in _scopes)
-        {
-            var rv = scope.GetValue(key);
-            if (rv != null)
-            {
-                return rv;
-            }
-        }
-
-        return null;
-    }
-
-    public RefValue SetValue(string key, IValue val)
-    {
-        return _scopes.Last().SetValue(key, val);
-    }
-
-    public void PushScope(ScopeContext scopeContext)
-    {
-        _scopes.Add(scopeContext);
-    }
-
-    public void PopScope()
-    {
-        if (_scopes.Count > 0)
-        {
-            _scopes.RemoveAt(_scopes.Count - 1);
-        }
-
-    }
-}
-
 public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 {
     private ScopeManager _scopeManager;
@@ -211,7 +133,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         
         return null;
     }
-
+    
     public override IValue VisitExpr(ShaellParser.ExprContext context)
     {
         throw new Exception("nejnejnej");
@@ -240,6 +162,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return refLhs.Get();
     }
 
+    #region ARITHMETIC_EXPRESSIONS
     public override IValue VisitAddExpr(ShaellParser.AddExprContext context)
     {
         var lhs = Visit(context.expr(0));
@@ -247,6 +170,108 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
         return lhs.ToNumber() + rhs.ToNumber();
     }
+
+    public override IValue VisitMinusExpr(ShaellParser.MinusExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return lhs.ToNumber() - rhs.ToNumber();
+    }
+
+    //Visit DivExpr and evaluate both sides and return the two values divided
+    public override IValue VisitDivExpr(ShaellParser.DivExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return lhs.ToNumber() / rhs.ToNumber();
+    }
+
+    public override IValue VisitMultExpr(ShaellParser.MultExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return lhs.ToNumber() * rhs.ToNumber();
+    }
+
+    public override IValue VisitModExpr(ShaellParser.ModExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return lhs.ToNumber() % rhs.ToNumber();
+    }
+
+    public override IValue VisitPowExpr(ShaellParser.PowExprContext context)
+    {
+        var basenum = Visit(context.expr(0));
+        var exponent = Visit(context.expr(1));
+
+        return Number.Power(basenum.ToNumber(), exponent.ToNumber());
+    }
+    #endregion
+
+    #region LOGICAL_EXPRESSIONS
+    
+    //Implement less than operator
+    public override IValue VisitLTExpr(ShaellParser.LTExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return new SBool(lhs.ToNumber() < rhs.ToNumber());
+    }
+
+    public override IValue VisitGTExpr(ShaellParser.GTExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return new SBool(lhs.ToNumber() > rhs.ToNumber());
+    }
+
+    public override IValue VisitLEQExpr(ShaellParser.LEQExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return new SBool(lhs.ToNumber() <= rhs.ToNumber());
+    }
+
+    public override IValue VisitGEQExpr(ShaellParser.GEQExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return new SBool(lhs.ToNumber() >= rhs.ToNumber());
+    }
+
+    public override IValue VisitEQExpr(ShaellParser.EQExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return new SBool(lhs.ToNumber() == rhs.ToNumber());
+    }
+
+    public override IValue VisitNEQExpr(ShaellParser.NEQExprContext context)
+    {
+        var lhs = Visit(context.expr(0));
+        var rhs = Visit(context.expr(1));
+
+        return new SBool(lhs.ToNumber() != rhs.ToNumber());
+    }
+
+    public override IValue VisitLnotExpr(ShaellParser.LnotExprContext context)
+    {
+        var lhs = Visit(context.expr());
+
+        return new SBool(!lhs.ToBool());
+    }
+    
+    #endregion
 
     public override IValue VisitVarIdentifier(ShaellParser.VarIdentifierContext context)
     {
@@ -260,9 +285,12 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
     public override IValue VisitNumberExpr(ShaellParser.NumberExprContext context)
     {
-        //TODO: Implement floating point or int parsing instead of just int
-        
-        return new Number(int.Parse(context.NUMBER().GetText()));
+        var num = context.NUMBER().GetText();
+
+        if (num.Contains(".")) 
+            return new Number(double.Parse(num));
+
+        return new Number(long.Parse(num));
     }
 
     public override IValue VisitFunctionCallExpr(ShaellParser.FunctionCallExprContext context)
@@ -289,14 +317,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return new SString(context.STRINGLITERAL().GetText()[1..^1]);
     }
     
-    //Visit DivExpr and evaluate both sides and return the two values divided
-    public override IValue VisitDivExpr(ShaellParser.DivExprContext context)
-    {
-        var lhs = Visit(context.expr(0));
-        var rhs = Visit(context.expr(1));
-
-        return lhs.ToNumber() / rhs.ToNumber();
-    }
     
     //Visit PosExpr and return the value with toNumber
     public override IValue VisitPosExpr(ShaellParser.PosExprContext context)
@@ -356,14 +376,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         throw new Exception("Cannot index with a non-keyable value");
     }
     
-    //Implement less than operator
-    public override IValue VisitLTExpr(ShaellParser.LTExprContext context)
-    {
-        var lhs = Visit(context.expr(0));
-        var rhs = Visit(context.expr(1));
-
-        return new SBool(lhs.ToNumber() < rhs.ToNumber());
-    }
     
     //Implement DerefExpr
     public override IValue VisitObjectLiteral(ShaellParser.ObjectLiteralContext context)

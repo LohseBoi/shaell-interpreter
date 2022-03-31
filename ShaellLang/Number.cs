@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace ShaellLang
@@ -7,6 +8,8 @@ namespace ShaellLang
     {
         private dynamic _numberRepresentation;
 
+        private static NumberTable _numberTable = NumberTable.getInstance();
+        
         public Number(long value)
         {
             _numberRepresentation = value;
@@ -52,7 +55,8 @@ namespace ShaellLang
 
         public ITable ToTable()
         {
-            throw new Exception("Type error: Number cannot be converted to table");
+            _numberTable.Number = this; //TODO: this is a hack, fix it
+            return _numberTable;
         }
 
         public static Number operator +(Number a, Number b)
@@ -63,19 +67,79 @@ namespace ShaellLang
             }
             else
             {
-                // Does not check for overflow where it should switch to floating
-                return new Number(a.ToInteger() + b.ToInteger());
+                try
+                {
+                    return new Number(checked(a.ToInteger() + b.ToInteger()));
+                }
+                catch (OverflowException e)
+                {
+                    return new Number(a.ToFloating() + b.ToFloating());
+                }
+            }
+        }
+        
+        public static Number operator -(Number a, Number b)
+        {
+            if (a.IsFloating || b.IsFloating)
+            {
+                return new Number(a.ToFloating() - b.ToFloating());
+            }
+            else
+            {
+                try
+                {
+                    return new Number(checked(a.ToInteger() - b.ToInteger()));
+                }
+                catch (OverflowException e)
+                {
+                    return new Number(a.ToFloating() - b.ToFloating());
+                }
+            }
+        }
+
+        public static Number operator *(Number a, Number b)
+        {
+            if (a.IsFloating || b.IsFloating)
+            {
+                return new Number(a.ToFloating() * b.ToFloating());
+            }
+            else
+            {
+                try
+                {
+                    return new Number(checked(a.ToInteger() * b.ToInteger()));
+                }
+                catch (OverflowException e)
+                {
+                    return new Number(a.ToFloating() * b.ToFloating());
+                }
             }
         }
 
         public static Number operator /(Number a, Number b)
         {
-            if (a.IsFloating || b.IsFloating)
+            if (a.IsFloating || b.IsFloating || a.ToInteger() % b.ToInteger() != new Number(0).ToInteger())
             {
                 return new Number(a.ToFloating() / b.ToFloating());
             }
-            // Does not check for overflow where it should switch to floating
-            return new Number(a.ToInteger() / b.ToInteger());
+            else
+            {
+                return new Number(a.ToInteger() / b.ToInteger());
+            }
+        }
+        
+        public static Number operator %(Number a, Number b)
+        {
+            if (a.IsFloating || b.IsFloating)
+            {
+                return new Number(a.ToFloating() % b.ToFloating());
+            }
+            return new Number(a.ToInteger() % b.ToInteger());
+        }
+
+        public static Number Power(Number a, Number b)
+        {
+            return new Number(Math.Pow(a.ToFloating(), b.ToFloating()));
         }
         
         //overide unary - and return the negative of the number
@@ -111,6 +175,54 @@ namespace ShaellLang
                 return a.ToInteger() > b.ToFloating();
             return a.ToInteger() > b.ToInteger();
         }
+
+        public static bool operator <=(Number a, Number b)
+        {
+            if (a.IsFloating && b.IsFloating)
+                return a.ToFloating() <= b.ToFloating();
+            if (a.IsFloating && b.IsInteger)
+                return a.ToFloating() <= b.ToInteger();
+            if (a.IsInteger && b.IsFloating)
+                return a.ToInteger() <= b.ToFloating();
+            return a.ToInteger() <= b.ToInteger();
+        }
         
+        public static bool operator >=(Number a, Number b)
+        {
+            if (a.IsFloating && b.IsFloating)
+                return a.ToFloating() >= b.ToFloating();
+            if (a.IsFloating && b.IsInteger)
+                return a.ToFloating() >= b.ToInteger();
+            if (a.IsInteger && b.IsFloating)
+                return a.ToInteger() >= b.ToFloating();
+            return a.ToInteger() >= b.ToInteger();
+        }
+        
+        public static bool operator ==(Number a, Number b)
+        {
+            if (a.IsFloating && b.IsFloating)
+                return a.ToFloating() == b.ToFloating();
+            if (a.IsFloating && b.IsInteger)
+                return a.ToFloating() == b.ToInteger();
+            if (a.IsInteger && b.IsFloating)
+                return a.ToInteger() == b.ToFloating();
+            return a.ToInteger() == b.ToInteger();
+        }
+
+        public static bool operator !=(Number a, Number b)
+        {
+            if (a.IsFloating && b.IsFloating)
+                return a.ToFloating() != b.ToFloating();
+            if (a.IsFloating && b.IsInteger)
+                return a.ToFloating() != b.ToInteger();
+            if (a.IsInteger && b.IsFloating)
+                return a.ToInteger() != b.ToFloating();
+            return a.ToInteger() != b.ToInteger();
+        }
+
+        public static bool operator !(Number a)
+        {
+            return !a.ToBool();
+        }
     }
 }
