@@ -22,4 +22,6 @@ public abstract class BaseValue : IValue
     public abstract bool IsEqual(IValue other);
     
     public string GetTypeName() => _typeName;
+
+    public virtual IValue Unpack() => this;
 }

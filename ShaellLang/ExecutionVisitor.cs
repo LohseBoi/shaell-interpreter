@@ -168,6 +168,9 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         var lhs = Visit(context.expr(0));
         var rhs = Visit(context.expr(1));
 
+        if (lhs.Unpack() is SString || rhs.Unpack() is SString)
+            return lhs.ToSString() + rhs.ToSString();
+
         return lhs.ToNumber() + rhs.ToNumber();
     }
 
@@ -193,6 +196,16 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         var lhs = Visit(context.expr(0));
         var rhs = Visit(context.expr(1));
 
+        if (lhs.Unpack() is SString)
+        {
+            return lhs.ToSString() * rhs.ToNumber();
+        }
+
+        if (rhs.Unpack() is SString)
+        {
+            return rhs.ToSString() * lhs.ToNumber();
+        }
+        
         return lhs.ToNumber() * rhs.ToNumber();
     }
 
@@ -268,7 +281,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         var lhs = Visit(context.expr(0));
         var rhs = Visit(context.expr(1));
 
-        return new SBool(lhs.ToNumber() != rhs.ToNumber());
+        return new SBool(!lhs.Equals(rhs.Unpack()));
     }
 
     public override IValue VisitLnotExpr(ShaellParser.LnotExprContext context)
@@ -404,5 +417,23 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(Visit(context.expr()).ToSString().Val);
     public override IValue VisitFileIdentifier(ShaellParser.FileIdentifierContext context) => new SFile(context.GetText());
     
+    
     public override IValue VisitNullExpr(ShaellParser.NullExprContext context) => new SNull();
+    
+    public override IValue VisitParenthesis(ShaellParser.ParenthesisContext context) => 
+        Visit(context.expr());
+
+    public override IValue VisitLANDExpr(ShaellParser.LANDExprContext context)
+    {
+        var lhs = Visit(context.expr(0)).ToBool();
+        if (!lhs)
+            return new SBool(false);
+        
+        var rhs = Visit(context.expr(1)).ToBool();
+        return new SBool(lhs && rhs);
+
+    }
+    
+    public override IValue VisitBnotExpr(ShaellParser.BnotExprContext context) => 
+        throw new NotImplementedException();
 }

@@ -45,6 +45,8 @@ namespace ShaellLang
                 
                 executer.SetGlobal("$T", TableLib.CreateLib());
             
+                executer.SetGlobal("$A", TestLib.CreateLib());
+                
                 executer.SetGlobal("$debug_break", new NativeFunc(delegate(IEnumerable<IValue> args)
                 {
                     Console.WriteLine("Debug break");

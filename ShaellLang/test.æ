@@ -1,0 +1,24 @@
+fn $TestStringOp()
+    $A:assert("a" + "b" == "ab", "String concatenation through + operator")
+    $A:assert("2" + 1 == "21", "String concatenation through + operator")
+    $A:assert(1 + "2" == "12", "String concatenation through + operator")
+
+    $A:assert("ab" * 2 == "abab", "String repetition through * operator")
+    $A:assert("ab" * 0 == "", "String repetition through * operator")
+    $A:assert(2 * "ab" == "abab", "String repetition through * operator")
+    $A:assert(0 * "a" == "", "String repetition through * operator")
+end
+
+fn $TestNumberOp()
+    $A:assert(1 + 2 == 3, "Number addition through + operator")
+    $A:assert(1 - 2 == -1, "Number subtraction through - operator")
+    $A:assert(1 * 2 == 2, "Number multiplication through * operator")
+    $A:assert(2 / 2 == 1, "Number division through / operator")
+    $A:assert(1 / 2 == 0.5, "Number division through / operator")
+    $A:assert(2 % 2 == 0, "Number modulo through % operator")
+    $A:assert(4 % 3 == 1, "Number modulo through % operator")
+    $A:assert(2 ** 3 == 8, "Number exponentiation through ^ operator")
+end
+
+$A:describe("Test strings", $TestStringOp)
+$A:describe("Test numbers", $TestNumberOp)
