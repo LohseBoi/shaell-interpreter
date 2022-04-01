@@ -15,6 +15,10 @@ namespace ShaellLang
 
 		ITable ToTable();
 
+		JobObject ToJobObject();
+
+		SProcess ToSProcess();
+
 		bool IsEqual(IValue other);
 
 		string GetTypeName();

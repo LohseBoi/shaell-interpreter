@@ -47,4 +47,9 @@ public class RefValue : BaseValue
     {
         return _realValue.IsEqual(other);
     }
+
+    public override string ToString()
+    {
+        return _realValue.ToString();
+    }
 }
