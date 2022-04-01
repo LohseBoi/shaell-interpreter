@@ -33,13 +33,14 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     
     public override IValue VisitProg(ShaellParser.ProgContext context)
     {
-        VisitStmts(context.stmts());
+        VisitStmts(context.stmts(), false);
         return null;
     }
     
-    public override IValue VisitStmts(ShaellParser.StmtsContext context)
+    public IValue VisitStmts(ShaellParser.StmtsContext context, bool scoper)
     {
-        _scopeManager.PushScope(new ScopeContext());
+        if (scoper)
+            _scopeManager.PushScope(new ScopeContext());
         foreach (var stmt in context.stmt())
         {
             var rv = VisitStmt(stmt);
@@ -49,8 +50,13 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
                 return rv;
             }
         }
-        _scopeManager.PopScope();
+        if (scoper)
+            _scopeManager.PopScope();
         return null;
+    }
+    public override IValue VisitStmts(ShaellParser.StmtsContext context)
+    {
+        return VisitStmts(context, true);
     }
 
     public override IValue VisitStmt(ShaellParser.StmtContext context)
@@ -145,7 +151,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         
         if (lhs is not RefValue)
         {
-            throw new Exception("Tried to assign to non ref");
+            throw new SyntaxErrorException("Syntax Error: Tried to assign to non ref");
         }
 
         RefValue refLhs = lhs as RefValue;
