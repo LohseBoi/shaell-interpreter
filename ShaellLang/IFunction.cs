@@ -5,8 +5,8 @@ namespace ShaellLang
 {
 	public interface IFunction : IValue
 	{
-		IValue Call(ICollection<IValue> args);
-
+		IValue Call(IEnumerable<IValue> args);
+		
 		uint ArgumentCount { get; }
 	}
 }

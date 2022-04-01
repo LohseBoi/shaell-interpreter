@@ -4,23 +4,23 @@ namespace ShaellLang;
 
 public class NativeTable : ITable
 {
-    private Dictionary<string, IValue> _functionLookup;
+    private Dictionary<string, IValue> valueLookup;
 
     public NativeTable()
     {
-        _functionLookup = new Dictionary<string, IValue>();
+        valueLookup = new Dictionary<string, IValue>();
     }
 
-    protected void SetValue(string key, IValue value)
+    public void SetValue(string key, IValue value)
     {
-        _functionLookup[key] = value;
+        valueLookup[key] = value;
     }
 
     public virtual RefValue GetValue(IKeyable key)
     {
         if (key is SString)
         {
-            if (_functionLookup.TryGetValue(key.KeyValue, out IValue val))
+            if (valueLookup.TryGetValue(key.KeyValue, out IValue val))
             {
                 return new RefValue(val);
             }
@@ -29,7 +29,7 @@ public class NativeTable : ITable
         return null;
     }
 
-    public void RemoveValue(IKeyable key)
+    public virtual void RemoveValue(IKeyable key)
     {
         return;
     }

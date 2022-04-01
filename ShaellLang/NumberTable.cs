@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -23,27 +24,27 @@ public class NumberTable : NativeTable
         return instance;
     }
     
-    private IValue sqrtCallHandler(ICollection<IValue> args)
+    private IValue sqrtCallHandler(IEnumerable<IValue> args)
     {
         return new Number(Math.Sqrt(Number.ToFloating()));
     }
 
-    private IValue floorCallHandler(ICollection<IValue> args)
+    private IValue floorCallHandler(IEnumerable<IValue> args)
     {
         return new Number(Math.Floor(Number.ToFloating()));
     }
 
-    private IValue ceilCallHandler(ICollection<IValue> args)
+    private IValue ceilCallHandler(IEnumerable<IValue> args)
     {
         return new Number(Math.Ceiling(Number.ToFloating()));
     }
 
-    private IValue log2CallHandler(ICollection<IValue> args)
+    private IValue log2CallHandler(IEnumerable<IValue> args)
     {
         return new Number(Math.Log2(Number.ToFloating()));
     }
 
-    private IValue logCallHandler(ICollection<IValue> args)
+    private IValue logCallHandler(IEnumerable<IValue> args)
     {
         return new Number(Math.Log(Number.ToFloating(), args.ToArray()[0].ToNumber().ToFloating()));
     }

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ShaellLang;
 
-public class UserFunc : IFunction
+public class UserFunc : BaseValue, IFunction
 {
     private ShaellParser.StmtsContext _funcStmts;
     private ScopeManager _capturedScope;
@@ -16,7 +16,7 @@ public class UserFunc : IFunction
         ShaellParser.StmtsContext funcStmts, 
         ScopeManager capturedScope, 
         List<string> formalArguments
-        )
+        ) : base("userfunc")
     {
         _funcStmts = funcStmts;
         _capturedScope = capturedScope;
@@ -24,18 +24,14 @@ public class UserFunc : IFunction
         _globalScope = new ScopeContext();
     }
 
-    public bool ToBool() => true;
-    public Number ToNumber()
-    {
-        throw new Exception("Type error, function cannot be converted to number");
-    }
+    public override bool ToBool() => true;
 
-    public IValue Call(ICollection<IValue> args)
+    public IValue Call(IEnumerable<IValue> args)
     {
         ScopeManager activeScopeManager = _capturedScope.CopyScopes();
         activeScopeManager.PushScope(new ScopeContext());
         var arr = args.ToArray();
-        for (var i = 0; i < args.Count && i < _formalArguments.Count; i++)
+        for (var i = 0; i < arr.Length && i < _formalArguments.Count; i++)
         {
             activeScopeManager.SetValue(_formalArguments[i], arr[i]);
         }
@@ -49,18 +45,13 @@ public class UserFunc : IFunction
 
     public uint ArgumentCount => 0;
 
-    public IFunction ToFunction()
+    public override IFunction ToFunction()
     {
         return this;
     }
-
-    public SString ToSString()
+    
+    public override bool IsEqual(IValue other)
     {
-        throw new Exception("Type error, function cannot be converted to a string");
-    }
-
-    public ITable ToTable()
-    {
-        throw new Exception("Type error: function cannot be converted to table");
+        return other == this;
     }
 }
