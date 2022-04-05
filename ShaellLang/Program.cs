@@ -9,11 +9,13 @@ namespace ShaellLang
 
     class Program
     {
+        private static PlatformID OS;
         static void Main(string[] args)
         {
+            OS = Environment.OSVersion.Platform;
             bool interactivemode = args.Length < 1; //TODO: Adjust for Shæll-flags, and not just the users scripts flags
 
-            Func<string> indexer = () => $"{Directory.GetCurrentDirectory().Split('/').Last()} $ ";
+            Func<string> indexer = () => $"{Directory.GetCurrentDirectory().Split(new [] { '/', '\\' }).Last()} $ ";
             Func<string> input;
             if (!interactivemode)
                 input = () => File.ReadAllText(args[0]);
@@ -21,14 +23,14 @@ namespace ShaellLang
             {
                 input = () =>
                 {
-                    input = () => ReadInput(indexer());
-                    
-                    string home = Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX
+                    input = OS is PlatformID.Unix or PlatformID.MacOSX ? () => ReadInputLinux(indexer()) : ReadInputWin;
+                    Console.TreatControlCAsInput = true;
+                    string home = OS is PlatformID.Unix or PlatformID.MacOSX
                         ? Environment.GetEnvironmentVariable("HOME")
                         : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
                     if (File.Exists($"{home}/.shællrc"))
                         return File.ReadAllText($"{home}/.shællrc");
-                    return ReadInput(indexer());
+                    return input();
                 };
                 //TODO: load .shæll_history
             }
@@ -77,21 +79,18 @@ namespace ShaellLang
 
         }
 
-        private static string ReadInput(string indexer)
+        private static string ReadInputLinux(string indexer)
         {
             List<char> input = new List<char>();
             Console.Write(indexer);
             int inputIndex = 0;
             int cmdIndex = 0;
-            string home = Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX
-                ? Environment.GetEnvironmentVariable("HOME")
-                : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+            string home = Environment.GetEnvironmentVariable("HOME");
             List<string> cmdHistory = new List<string> { "" };
             if (File.Exists($"{home}/.shæll_history"))
                 cmdHistory.AddRange(File.ReadLines($"{home}/.shæll_history").Reverse()
                     .Select(x => x.Substring(x.IndexOf(':') + 1)));
             
-            Console.TreatControlCAsInput = true;
             while (Console.ReadKey() is var key && key is not {Key: ConsoleKey.Enter})
             {
                 if (key.Modifiers == ConsoleModifiers.Control)
@@ -127,16 +126,14 @@ namespace ShaellLang
                     case ConsoleKey.LeftArrow:
                         if (inputIndex != 0)
                         {
-                            if (Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX)
-                                Console.CursorLeft--;
+                            Console.CursorLeft--;
                             inputIndex--;
                         }
                         break;
                     case ConsoleKey.RightArrow:
                         if (inputIndex != input.Count)
                         {
-                            if (Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX)
-                                Console.CursorLeft++;
+                            Console.CursorLeft++;
                             inputIndex++;
                         }
                         break;
@@ -186,9 +183,82 @@ namespace ShaellLang
             string @out = new string(input.ToArray());
             
             if (@out.Length > 0)
-                File.AppendAllText($"{home}/.shæll_history", $"{DateTime.Now:G}:{@out}\n");
+                SaveCmd(home, @out);
             Console.WriteLine();
             return @out;
         }
+        private static string ReadInputWin()
+        {
+            List<char> input = new List<char>();
+            int inputIndex = 0;
+            int cmdIndex = 0;
+            string home = Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+            List<string> cmdHistory = new List<string> { "" };
+            if (File.Exists($"{home}/.shæll_history"))
+                cmdHistory.AddRange(File.ReadLines($"{home}/.shæll_history").Reverse()
+                    .Select(x => x.Substring(x.IndexOf(':') + 1)));
+            
+            while (Console.ReadKey() is var key && key is not {Key: ConsoleKey.Enter})
+            {
+                if (key.Modifiers == ConsoleModifiers.Control)
+                {
+                    if (key.Key == ConsoleKey.C) //TODO: Stop Process? Should be moved away from here when implemented
+                    {
+                        Console.WriteLine();
+                        input = new List<char>();
+                        inputIndex = 0;
+                        continue;
+                    }
+                    /*
+                    if (key.Key == ConsoleKey.Z) //TODO: Suspend Process? Should be moved away from here when implemented
+                    {
+                    }
+                    */
+                    if (key.Key == ConsoleKey.G)
+                    {
+                        if (!input.Any() && inputIndex == 0)
+                            Environment.Exit(0);
+                        Console.WriteLine();
+                        Console.WriteLine("Input <CTRL+G> one more time and see what happens, punk!");
+                        input = new List<char>();
+                        inputIndex = 0;
+                        continue;
+                    }
+                }
+
+                switch (key.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        cmdIndex = cmdHistory.Count - 1 <= cmdIndex ? cmdIndex : cmdIndex + 1;
+                        input = cmdHistory[cmdIndex].ToCharArray().ToList();
+                        inputIndex = input.Count;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        cmdIndex = cmdIndex <= 0 ? 0 : cmdIndex - 1;
+                        input = cmdHistory[cmdIndex].ToCharArray().ToList();
+                        inputIndex = input.Count;
+                        break;
+
+                    default:
+                        if (char.IsLetterOrDigit(key.KeyChar) || char.IsPunctuation(key.KeyChar) || char.IsSymbol(key.KeyChar) || char.IsWhiteSpace(key.KeyChar))
+                        {
+                            input.Insert(inputIndex, key.KeyChar);
+                            inputIndex++;
+                        }
+                        break;
+                }
+                
+                Console.Write(' ');
+                Console.Write(input.ToArray());
+            }
+            
+            string @out = new string(input.ToArray());
+            
+            if (@out.Length > 0)
+                SaveCmd(home, @out);
+            Console.WriteLine();
+            return @out;
+        }
+        static void SaveCmd(string path, string cmd) => File.AppendAllText($"{path}/.shæll_history", $"{DateTime.Now:MM/dd/yyyy HH.mm.ss}:{cmd}\n");
     }
 }
