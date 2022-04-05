@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Antlr4.Runtime.Tree;
 
 namespace ShaellLang;
 
@@ -44,11 +41,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitProg(ShaellParser.ProgContext context)
     {
         if (context.children.Count == 2)
-        {
             VisitProgramArgs(context.programArgs());
-            VisitStmts(context.stmts(), false);
-            return null;
-        }
         VisitStmts(context.stmts(), false);
         return null;
     }
@@ -70,10 +63,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
             _scopeManager.PopScope();
         return null;
     }
-    public override IValue VisitStmts(ShaellParser.StmtsContext context)
-    {
-        return VisitStmts(context, true);
-    }
+    public override IValue VisitStmts(ShaellParser.StmtsContext context) => VisitStmts(context, true);
 
     public override IValue VisitStmt(ShaellParser.StmtContext context)
     {
@@ -85,13 +75,10 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
                 var jo = proc.Execute().ToJobObject();
                 return jo;
             }
-                
+
             return child;
         }
-        else
-        {
-            throw new Exception("No no no");
-        }
+        throw new Exception("No no no");
     }
 
     public override IValue VisitIfStmt(ShaellParser.IfStmtContext context)
@@ -99,13 +86,9 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         var stmts = context.stmts();
         
         if (Visit(context.expr()).ToBool())
-        {
             return VisitStmts(stmts[0]);
-        }
-        else if (stmts.Length > 1)
-        {
+        if (stmts.Length > 1)
             return VisitStmts(stmts[1]);
-        }
 
         return null;
     }
@@ -131,7 +114,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
             if (_shouldReturn)
                 return rv;
         }
-
         return null;
     }
 
@@ -595,15 +577,15 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     //Implement DerefExpr
     public override IValue VisitObjectLiteral(ShaellParser.ObjectLiteralContext context)
     {
-        UserTable _out = new UserTable();
+        UserTable @out = new UserTable();
         for (int i = 0; i < context.expr().Length; i++)
         {
             IValue key = Visit(context.objfields()[i]);
-            RefValue value = _out.GetValue(key as IKeyable);
+            RefValue value = @out.GetValue(key as IKeyable);
             value.Set(Visit(context.expr()[i]));
         }
 
-        return _out;
+        return @out;
     }
 
     public override IValue VisitProgramArgs(ShaellParser.ProgramArgsContext context)
