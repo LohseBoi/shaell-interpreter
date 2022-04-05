@@ -117,7 +117,7 @@ namespace ShaellLang
                         Console.WriteLine("Input <CTRL+G> one more time and see what happens, punk!");
                         input = new List<char>();
                         inputIndex = 0;
-                        Console.Write(indexer);
+                        Console.Write(indexer);           
                         continue;
                     }
                 }
@@ -127,14 +127,16 @@ namespace ShaellLang
                     case ConsoleKey.LeftArrow:
                         if (inputIndex != 0)
                         {
+                            if (Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX)
+                                Console.CursorLeft--;
                             inputIndex--;
-                            Console.CursorLeft--;
                         }
                         break;
                     case ConsoleKey.RightArrow:
                         if (inputIndex != input.Count)
                         {
-                            Console.CursorLeft++;
+                            if (Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX)
+                                Console.CursorLeft++;
                             inputIndex++;
                         }
                         break;
