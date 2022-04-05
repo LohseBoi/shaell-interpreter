@@ -23,7 +23,8 @@ namespace ShaellLang
             {
                 input = () =>
                 {
-                    input = OS is PlatformID.Unix or PlatformID.MacOSX ? () => ReadInputLinux(indexer()) : ReadInputWin;
+                    input = () => ReadInputLinux(indexer());
+                    //input = OS is PlatformID.Unix or PlatformID.MacOSX ? () => ReadInputLinux(indexer()) : () => ReadInputWin(indexer());
                     Console.TreatControlCAsInput = true;
                     string home = OS is PlatformID.Unix or PlatformID.MacOSX
                         ? Environment.GetEnvironmentVariable("HOME")
@@ -85,7 +86,7 @@ namespace ShaellLang
             Console.Write(indexer);
             int inputIndex = 0;
             int cmdIndex = 0;
-            string home = Environment.GetEnvironmentVariable("HOME");
+            string home = OS is PlatformID.Unix or PlatformID.MacOSX ? Environment.GetEnvironmentVariable("HOME") : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");;
             List<string> cmdHistory = new List<string> { "" };
             if (File.Exists($"{home}/.shæll_history"))
                 cmdHistory.AddRange(File.ReadLines($"{home}/.shæll_history").Reverse()
@@ -187,9 +188,10 @@ namespace ShaellLang
             Console.WriteLine();
             return @out;
         }
-        private static string ReadInputWin()
+        private static string ReadInputWin(string indexer)
         {
             List<char> input = new List<char>();
+            Console.Write(indexer);
             int inputIndex = 0;
             int cmdIndex = 0;
             string home = Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
@@ -197,6 +199,7 @@ namespace ShaellLang
             if (File.Exists($"{home}/.shæll_history"))
                 cmdHistory.AddRange(File.ReadLines($"{home}/.shæll_history").Reverse()
                     .Select(x => x.Substring(x.IndexOf(':') + 1)));
+            
             
             while (Console.ReadKey() is var key && key is not {Key: ConsoleKey.Enter})
             {
@@ -207,6 +210,7 @@ namespace ShaellLang
                         Console.WriteLine();
                         input = new List<char>();
                         inputIndex = 0;
+                        Console.Write(indexer);
                         continue;
                     }
                     /*
@@ -222,23 +226,52 @@ namespace ShaellLang
                         Console.WriteLine("Input <CTRL+G> one more time and see what happens, punk!");
                         input = new List<char>();
                         inputIndex = 0;
+                        Console.Write(indexer);           
                         continue;
                     }
                 }
 
                 switch (key.Key)
                 {
+                    case ConsoleKey.LeftArrow:
+                        if (inputIndex != 0)
+                        {
+                            Console.CursorLeft--;
+                            inputIndex--;
+                        }
+                        break;
+                    case ConsoleKey.RightArrow:
+                        if (inputIndex != input.Count)
+                        {
+                            Console.CursorLeft++;
+                            inputIndex++;
+                        }
+                        break;
                     case ConsoleKey.UpArrow:
                         cmdIndex = cmdHistory.Count - 1 <= cmdIndex ? cmdIndex : cmdIndex + 1;
                         input = cmdHistory[cmdIndex].ToCharArray().ToList();
+                        Console.CursorLeft = indexer.Length + input.Count;
                         inputIndex = input.Count;
                         break;
                     case ConsoleKey.DownArrow:
                         cmdIndex = cmdIndex <= 0 ? 0 : cmdIndex - 1;
                         input = cmdHistory[cmdIndex].ToCharArray().ToList();
+                        Console.CursorLeft = indexer.Length + input.Count;
                         inputIndex = input.Count;
                         break;
-
+                    case ConsoleKey.Backspace:
+                        if (inputIndex != 0)
+                        {
+                            inputIndex--;
+                            input.RemoveAt(inputIndex);
+                            Console.CursorLeft--;
+                        }
+                        break;
+                    case ConsoleKey.Delete:
+                        if (inputIndex < input.Count)
+                            input.RemoveAt(inputIndex);
+                        break;
+                    
                     default:
                         if (char.IsLetterOrDigit(key.KeyChar) || char.IsPunctuation(key.KeyChar) || char.IsSymbol(key.KeyChar) || char.IsWhiteSpace(key.KeyChar))
                         {
@@ -248,8 +281,14 @@ namespace ShaellLang
                         break;
                 }
                 
-                Console.Write(' ');
+                //var (left, top) = Console.GetCursorPosition();
+                Console.CursorLeft = indexer.Length;
+                Console.Write(new string(' ', Console.BufferWidth - indexer.Length));
+                Console.CursorLeft = indexer.Length;
+                //Console.CursorTop = top;
                 Console.Write(input.ToArray());
+                //Console.SetCursorPosition(left, top);
+            
             }
             
             string @out = new string(input.ToArray());
