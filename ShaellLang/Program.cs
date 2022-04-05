@@ -172,13 +172,13 @@ namespace ShaellLang
                         break;
                 }
                 
-                var (left, top) = Console.GetCursorPosition();
+                //var (left, top) = Console.GetCursorPosition();
                 Console.CursorLeft = indexer.Length;
                 Console.Write(new string(' ', Console.BufferWidth - indexer.Length));
                 Console.CursorLeft = indexer.Length;
-                Console.CursorTop = top;
+                //Console.CursorTop = top;
                 Console.Write(input.ToArray());
-                Console.SetCursorPosition(left, top);
+                Console.CursorLeft = indexer.Length + inputIndex;
             }
             
             string @out = new string(input.ToArray());
