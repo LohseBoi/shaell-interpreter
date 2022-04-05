@@ -173,8 +173,8 @@ namespace ShaellLang
                 }
                 
                 //var (left, top) = Console.GetCursorPosition();
-                Console.CursorLeft = indexer.Length;
-                Console.Write(new string(' ', Console.BufferWidth - indexer.Length));
+                //Console.CursorLeft = indexer.Length;
+                //Console.Write(new string(' ', Console.BufferWidth - indexer.Length));
                 Console.CursorLeft = indexer.Length;
                 //Console.CursorTop = top;
                 Console.Write(input.ToArray());
