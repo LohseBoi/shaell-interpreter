@@ -11,11 +11,13 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     private ScopeManager _scopeManager;
     private ScopeContext _globalScope;
     private bool _shouldReturn;
-    public ExecutionVisitor()
+    private string[] _args;
+    public ExecutionVisitor(string[] args)
     {
         _globalScope = new ScopeContext();
         _scopeManager = new ScopeManager();
         _scopeManager.PushScope(_globalScope);
+        _args = args;
         _shouldReturn = false;
     }
     
@@ -33,6 +35,12 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     
     public override IValue VisitProg(ShaellParser.ProgContext context)
     {
+        if (context.children.Count == 2)
+        {
+            VisitProgramArgs(context.programArgs());
+            VisitStmts(context.stmts());
+            return null;
+        }
         VisitStmts(context.stmts());
         return null;
     }
@@ -583,7 +591,25 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
         return _out;
     }
-    
+
+    public override IValue VisitProgramArgs(ShaellParser.ProgramArgsContext context)
+    {
+        int i = 0;
+        foreach (var formal in context.innerFormalArgList().VARIDENTFIER())
+        {
+            if (i < _args.Length)
+            {
+                _scopeManager.SetValue(formal.GetText(), new SString(_args[i]));
+            }
+            else
+            {
+                _scopeManager.SetValue(formal.GetText(), new SNull());
+            }
+            i++;
+        }
+        return null;
+    }
+
     public override IValue VisitFieldExpr(ShaellParser.FieldExprContext context) => Visit(context.expr());
 
     public override IValue VisitFieldIdentifier(ShaellParser.FieldIdentifierContext context) => new SString(context.GetText());

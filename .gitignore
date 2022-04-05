@@ -134,3 +134,9 @@ _NCrunch*
 
 .idea/
 .vs/
+
+
+out/
+.antlr/
+gen/
+testscripts/

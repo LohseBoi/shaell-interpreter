@@ -8,7 +8,7 @@ namespace ShaellLang
 	public class ShaellLang
 	{
 		//Runs the test script and returns whether it failed or not
-		public bool Run(string file)
+		public bool Run(string file, string[] args)
 		{
 			string fileContent = File.ReadAllText(file);
 
@@ -21,7 +21,7 @@ namespace ShaellLang
 				ShaellParser shaellParser = new ShaellParser(commonTokenStream);
 
 				ShaellParser.ProgContext progContext = shaellParser.prog();
-				var executer = new ExecutionVisitor();
+				var executer = new ExecutionVisitor(args[1..]);
 				executer.SetGlobal("$print", new NativeFunc(delegate(IEnumerable<IValue> args)
 				{
 					foreach (var value in args)
