@@ -18,58 +18,26 @@ namespace ShaellLang
     {
         static void Main(string[] args)
         {
-            string indexer = "> ";
-            /*
-            if (args.Length < 1 ) {
-                ExecutionVisitor executer = new ExecutionVisitor();
-                executer.SetGlobal("$print", new NativeFunc(delegate(IEnumerable<IValue> _args)
-                {
-                    foreach (var value in _args)
-                    {
-                        Console.Write(value.ToSString().Val);
-                    }
-                    Console.WriteLine();
-                    
-                    return new SNull();
-                }, 0));
-                
-                executer.SetGlobal("$T", TableLib.CreateLib());
-            
-                executer.SetGlobal("$debug_break", new NativeFunc(delegate(IEnumerable<IValue> args)
-                {
-                    Console.WriteLine("Debug break");
-                    return new SNull();
-                }, 0));
 
-                string inputS = Readinput(indexer);
-                while (!string.Equals(inputS, "::q", StringComparison.Ordinal))
-                {
-                    try
-                    {
-                        AntlrInputStream inputStream = new AntlrInputStream(inputS);
-                        ShaellLexer shaellLexer = new ShaellLexer(inputStream);
-                        shaellLexer.AddErrorListener(new ShaellLexerErrorListener());
-                        CommonTokenStream commonTokenStream = new CommonTokenStream(shaellLexer);
-                        ShaellParser shaellParser = new ShaellParser(commonTokenStream);
-            
-                        ShaellParser.ProgContext progContext = shaellParser.prog();
 
-                        executer.Visit(progContext);
-                    }
-                    catch (SyntaxErrorException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                    inputS = Readinput(indexer);
-                }
-                
-                return;
+
+
+            bool interactivemode = args.Length < 1;
+            
+            //string indexer = "> ";
+            Func<string> indexer = () => $"{Directory.GetCurrentDirectory().Split('/').Last()} $ ";
+            Func<string> input;
+            if (!interactivemode)
+                input = () => File.ReadAllText(args[0]);
+            else
+            {
+                input = () =>
+                {
+                    input = () => ReadInput(indexer());
+                    return File.ReadAllText("testscripts/.shællrc"); //TODO: Temp, shouyld be "~/.shællrc"
+                };
+                //TODO: load .shæll_history
             }
-            */
-            Func<string> input = args.Length < 1 ? () => Readinput(indexer) : () => File.ReadAllText(args[0]);
-            //var filename = args[0];
-            //var content = File.ReadAllText(filename);
-            
             ExecutionVisitor executer = new ExecutionVisitor();
             executer.SetGlobal("$print", new NativeFunc(delegate(IEnumerable<IValue> args)
             {
@@ -106,15 +74,19 @@ namespace ShaellLang
                 {
                     Console.WriteLine(e.Message);
                 }
-            } while (args.Length < 1);
+            } while (interactivemode);
             
         }
 
-        private static string Readinput(string indexer)
+        private static string ReadInput(string indexer)
         {
             List<char> input = new List<char>();
             Console.Write(indexer);
-            uint index = 0;
+            int inputIndex = 0;
+            int cmdIndex = 0;
+            var cmdHistory = File.ReadLines("testscripts/.shæll_history").Reverse()
+                .Select(x => x.Substring(x.IndexOf(':') + 1)).ToList(); //TODO: temp, should be ~/.shæll_history
+            cmdHistory.Insert(0,"");
             Console.TreatControlCAsInput = true;
             while (Console.ReadKey() is ConsoleKeyInfo key && key is not {Key: ConsoleKey.Enter})
             {
@@ -124,59 +96,74 @@ namespace ShaellLang
                     {
                         Console.WriteLine();
                         input = new List<char>();
-                        index = 0;
+                        inputIndex = 0;
                         Console.Write(indexer);
                         continue;
                     }
+
                     if (key.Key == ConsoleKey.G)
                     {
-                        if (!input.Any() && index == 0)
+                        if (!input.Any() && inputIndex == 0)
                             Environment.Exit(0);
                         Console.WriteLine();
                         Console.WriteLine("Input <CTRL+G> one more time and see what happens, punk!");
                         input = new List<char>();
-                        index = 0;
+                        inputIndex = 0;
                         Console.Write(indexer);
                         continue;
                     }
                 }
-                
+
                 switch (key.Key)
                 {
                     case ConsoleKey.LeftArrow:
-                        if (index != 0)
+                        if (inputIndex != 0)
                         {
-                            index--;
+                            inputIndex--;
                             Console.CursorLeft--;
                         }
-
                         break;
                     case ConsoleKey.RightArrow:
-                        if (index != input.Count)
+                        if (inputIndex != input.Count)
                         {
                             Console.CursorLeft++;
-                            index++;
+                            inputIndex++;
                         }
                         break;
-
                     case ConsoleKey.UpArrow:
+                        cmdIndex = cmdHistory.Count - 1 <= cmdIndex ? cmdIndex : cmdIndex + 1;
+                        input = cmdHistory[cmdIndex].ToCharArray().ToList();
+                        Console.CursorLeft = indexer.Length + input.Count;
+                        inputIndex = input.Count;
+                        break;
                     case ConsoleKey.DownArrow:
-                        continue;
-                    
+                        cmdIndex = cmdIndex <= 0 ? 0 : cmdIndex - 1;
+                        input = cmdHistory[cmdIndex].ToCharArray().ToList();
+                        Console.CursorLeft = indexer.Length + input.Count;
+                        inputIndex = input.Count;
+                        break;
                     case ConsoleKey.Backspace:
-                        if (index != 0)
+                        if (inputIndex != 0)
                         {
-                            index--;
-                            input.RemoveAt((int) index);
+                            inputIndex--;
+                            input.RemoveAt(inputIndex);
                             Console.CursorLeft--;
                         }
-
                         break;
+                    case ConsoleKey.Delete:
+                        if (inputIndex < input.Count)
+                            input.RemoveAt(inputIndex);
+                        break;
+                    
                     default:
-                        input.Insert((int) index, key.KeyChar);
-                        index++;
+                        if (char.IsLetterOrDigit(key.KeyChar) || char.IsPunctuation(key.KeyChar) || char.IsSymbol(key.KeyChar))
+                        {
+                            input.Insert(inputIndex, key.KeyChar);
+                            inputIndex++;
+                        }
                         break;
                 }
+                
 
                 var (left, top) = Console.GetCursorPosition();
                 Console.CursorLeft = indexer.Length;
@@ -186,8 +173,13 @@ namespace ShaellLang
                 Console.Write(input.ToArray());
                 Console.SetCursorPosition(left, top);
             }
+
+            string _out = new string(input.ToArray());
+
+            if (_out.Length > 0)
+                File.AppendAllLines("testscripts/.shæll_history", new[] { $"{DateTime.Now:G}:{_out}" }); //TODO: temp, should be ~/.shæll_history
             Console.WriteLine();
-            return new string(input.ToArray());
+            return _out;
         }
     }
 }
