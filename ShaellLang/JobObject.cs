@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ShaellLang;
 
-public class JobObject : BaseValue, IValue
+public class JobObject : BaseValue
 {
     private readonly Process _process;
     private NativeTable _nativeTable;
@@ -22,10 +22,10 @@ public class JobObject : BaseValue, IValue
         set => _nativeTable.SetValue("value", value);
     }
 
-    private IValue Out
+    public IValue Out
     {
         get => _nativeTable.GetValue(new SString("out"));
-        set => _nativeTable.SetValue("out", value);
+        private set => _nativeTable.SetValue("out", value);
     }
     
     private IValue Err
@@ -49,16 +49,19 @@ public class JobObject : BaseValue, IValue
 
     public static class Factory
     {
-        public static JobObject StartProcess(Process process)
+        public static JobObject StartProcess(Process process, string stdin)
         {
             var jo = new JobObject(process);
             process.Exited += (sender, args) => jo.Value = new Number(process.ExitCode);
             process.EnableRaisingEvents = true;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardInput = true;
             process.StartInfo.RedirectStandardError = true;
 
             process.Start();
+            if(stdin is not null)
+                process.StandardInput.Write(stdin);
             process.WaitForExit();
             jo.Out = new SString(process.StandardOutput.ReadToEnd());
             jo.Err = new SString(process.StandardError.ReadToEnd());
@@ -92,8 +95,18 @@ public class JobObject : BaseValue, IValue
         return _nativeTable;
     }
 
+    public override JobObject ToJobObject()
+    {
+        return this;
+    }
+
     public override bool IsEqual(IValue other)
     {
         return this == other;
+    }
+
+    public override string ToString()
+    {
+        return Out.ToString();
     }
 }

@@ -10,9 +10,10 @@ public class RefValue : BaseValue
         _realValue = val;
     }
     
-    public void Set(IValue newValue)
+    public IValue Set(IValue newValue)
     {
         _realValue = newValue;
+        return _realValue;
     }
 
     public IValue Get()
@@ -21,7 +22,7 @@ public class RefValue : BaseValue
         
     }
 
-    public IValue Unpack()
+    public override IValue Unpack()
     {
         if (_realValue is RefValue realRefValue)
         {
@@ -46,5 +47,10 @@ public class RefValue : BaseValue
     public override bool IsEqual(IValue other)
     {
         return _realValue.IsEqual(other);
+    }
+
+    public override string ToString()
+    {
+        return _realValue.ToString();
     }
 }

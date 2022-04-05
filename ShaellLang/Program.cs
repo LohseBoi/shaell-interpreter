@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
-using System.Runtime.CompilerServices;
-using System.Xml;
 using Antlr4.Runtime;
-using Antlr4.Runtime.Misc;
-using Antlr4.Runtime.Tree;
-
 
 namespace ShaellLang
 {
@@ -18,13 +11,8 @@ namespace ShaellLang
     {
         static void Main(string[] args)
         {
+            bool interactivemode = args.Length < 1; //TODO: Adjust for Shæll-flags, and not just the users scripts flags
 
-
-
-
-            bool interactivemode = args.Length < 1;
-            
-            //string indexer = "> ";
             Func<string> indexer = () => $"{Directory.GetCurrentDirectory().Split('/').Last()} $ ";
             Func<string> input;
             if (!interactivemode)
@@ -34,25 +22,33 @@ namespace ShaellLang
                 input = () =>
                 {
                     input = () => ReadInput(indexer());
-                    if (File.Exists("testscripts/.shællrc"))
-                        return File.ReadAllText("testscripts/.shællrc"); //TODO: Temp, should be "~/.shællrc"
+                    
+                    string home = Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX
+                        ? Environment.GetEnvironmentVariable("HOME")
+                        : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+                    if (File.Exists($"{home}/.shællrc"))
+                        return File.ReadAllText($"{home}/.shællrc");
                     return ReadInput(indexer());
                 };
                 //TODO: load .shæll_history
             }
-            ExecutionVisitor executer = new ExecutionVisitor();
-            executer.SetGlobal("$print", new NativeFunc(delegate(IEnumerable<IValue> args)
+
+            var executer = interactivemode ? new ExecutionVisitor() : new ExecutionVisitor(args[1..]);
+
+            executer.SetGlobal("$print", new NativeFunc(delegate(IEnumerable<IValue> innerArgs)
             {
-                foreach (var value in args)
+                foreach (var value in innerArgs)
                     Console.Write(value.ToSString().Val);
                 Console.WriteLine();
 
                 return new SNull();
             }, 0));
-                
+
             executer.SetGlobal("$T", TableLib.CreateLib());
-            
-            executer.SetGlobal("$debug_break", new NativeFunc(delegate(IEnumerable<IValue> args)
+
+            executer.SetGlobal("$A", TestLib.CreateLib());
+
+            executer.SetGlobal("$debug_break", new NativeFunc(delegate
             {
                 Console.WriteLine("Debug break");
                 return new SNull();
@@ -76,8 +72,9 @@ namespace ShaellLang
                 {
                     Console.WriteLine(e.Message);
                 }
+                // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
             } while (interactivemode);
-            
+
         }
 
         private static string ReadInput(string indexer)
@@ -86,11 +83,14 @@ namespace ShaellLang
             Console.Write(indexer);
             int inputIndex = 0;
             int cmdIndex = 0;
+            string home = Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX
+                ? Environment.GetEnvironmentVariable("HOME")
+                : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
             List<string> cmdHistory = new List<string> { "" };
-            if (File.Exists("testscripts/.shæll_history"))
-            cmdHistory.AddRange(File.ReadLines("testscripts/.shæll_history").Reverse()
-                .Select(x => x.Substring(x.IndexOf(':') + 1))); //TODO: temp, should be ~/.shæll_history
-            cmdHistory.Insert(0,"");
+            if (File.Exists($"{home}/.shæll_history"))
+                cmdHistory.AddRange(File.ReadLines($"{home}/.shæll_history").Reverse()
+                    .Select(x => x.Substring(x.IndexOf(':') + 1)));
+            
             Console.TreatControlCAsInput = true;
             while (Console.ReadKey() is var key && key is not {Key: ConsoleKey.Enter})
             {
@@ -164,7 +164,7 @@ namespace ShaellLang
                         break;
                     
                     default:
-                        if (char.IsLetterOrDigit(key.KeyChar) || char.IsPunctuation(key.KeyChar) || char.IsSymbol(key.KeyChar))
+                        if (char.IsLetterOrDigit(key.KeyChar) || char.IsPunctuation(key.KeyChar) || char.IsSymbol(key.KeyChar) || char.IsWhiteSpace(key.KeyChar))
                         {
                             input.Insert(inputIndex, key.KeyChar);
                             inputIndex++;
@@ -181,12 +181,12 @@ namespace ShaellLang
                 Console.SetCursorPosition(left, top);
             }
             
-            string _out = new string(input.ToArray());
+            string @out = new string(input.ToArray());
             
-            if (_out.Length > 0)
-                File.AppendAllText("testscripts/.shæll_history", $"{DateTime.Now:G}:{_out}\n"); //TODO: temp, should be ~/.shæll_history
+            if (@out.Length > 0)
+                File.AppendAllText($"{home}/.shæll_history", $"{DateTime.Now:G}:{@out}\n");
             Console.WriteLine();
-            return _out;
+            return @out;
         }
     }
 }

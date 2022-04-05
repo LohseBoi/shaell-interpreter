@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace ShaellLang;
 
@@ -64,6 +65,41 @@ public class SString : BaseValue, ITable, IKeyable
     public void RemoveValue(IKeyable key)
     {
         return;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+
+    public static SString operator +(SString left, SString right)
+    {
+        return new SString(left.Val + right.Val);
+    }
+
+    public static SString operator *(SString left, Number right)
+    {
+        StringBuilder sb = new StringBuilder();
+        if (right.IsInteger)
+        {
+            var val = right.ToInteger();
+            if (val > int.MaxValue)
+                throw new Exception("String multiplication overflow");
+            if (val < 0)
+                throw new Exception("String cannot be multiplied with less than 0");
+            sb.Insert(0, left.Val, (int) val);
+        }
+        else
+        {
+            var floored = Math.Floor(right.ToFloating());
+            if (floored > int.MaxValue)
+                throw new Exception("String multiplication overflow");
+            if (floored < 0)
+                throw new Exception("String cannot be multiplied with less than 0");
+            sb.Insert(0, left.Val, (int) Math.Floor(right.ToFloating()));
+        }
+
+        return new SString(sb.ToString());
     }
 
     public string Val => _val;

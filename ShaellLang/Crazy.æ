@@ -108,3 +108,20 @@ $print($T:length($obj))
 $T:insert($obj, 3, 4)
 
 $print($T:length($obj))
+
+$print("-" * 10)
+$print(9 * "-")
+
+$print("rrgr" + "ksfogk")
+$print("skok" + 492)
+$print(942 + "bob")
+
+$testvalue = 3
+$testvalue += 5
+$print($testvalue)
+$testvalue *= 2
+$print($testvalue)
+$testvalue -= 2
+$print($testvalue)
+$testvalue /= 2
+$print($testvalue)
