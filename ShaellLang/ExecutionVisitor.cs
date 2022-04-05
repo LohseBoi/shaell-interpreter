@@ -36,8 +36,8 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         VisitStmts(context.stmts(), false);
         return null;
     }
-    
-    public IValue VisitStmts(ShaellParser.StmtsContext context, bool scoper)
+
+    private IValue VisitStmts(ShaellParser.StmtsContext context, bool scoper)
     {
         if (scoper)
             _scopeManager.PushScope(new ScopeContext());

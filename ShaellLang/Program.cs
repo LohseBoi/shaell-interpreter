@@ -34,7 +34,9 @@ namespace ShaellLang
                 input = () =>
                 {
                     input = () => ReadInput(indexer());
-                    return File.ReadAllText("testscripts/.shællrc"); //TODO: Temp, shouyld be "~/.shællrc"
+                    if (File.Exists("testscripts/.shællrc"))
+                        return File.ReadAllText("testscripts/.shællrc"); //TODO: Temp, should be "~/.shællrc"
+                    return ReadInput(indexer());
                 };
                 //TODO: load .shæll_history
             }
@@ -84,15 +86,17 @@ namespace ShaellLang
             Console.Write(indexer);
             int inputIndex = 0;
             int cmdIndex = 0;
-            var cmdHistory = File.ReadLines("testscripts/.shæll_history").Reverse()
-                .Select(x => x.Substring(x.IndexOf(':') + 1)).ToList(); //TODO: temp, should be ~/.shæll_history
+            List<string> cmdHistory = new List<string> { "" };
+            if (File.Exists("testscripts/.shæll_history"))
+            cmdHistory.AddRange(File.ReadLines("testscripts/.shæll_history").Reverse()
+                .Select(x => x.Substring(x.IndexOf(':') + 1))); //TODO: temp, should be ~/.shæll_history
             cmdHistory.Insert(0,"");
             Console.TreatControlCAsInput = true;
-            while (Console.ReadKey() is ConsoleKeyInfo key && key is not {Key: ConsoleKey.Enter})
+            while (Console.ReadKey() is var key && key is not {Key: ConsoleKey.Enter})
             {
                 if (key.Modifiers == ConsoleModifiers.Control)
                 {
-                    if (key.Key == ConsoleKey.C)
+                    if (key.Key == ConsoleKey.C) //TODO: Stop Process? Should be moved away from here when implemented
                     {
                         Console.WriteLine();
                         input = new List<char>();
@@ -100,7 +104,11 @@ namespace ShaellLang
                         Console.Write(indexer);
                         continue;
                     }
-
+                    /*
+                    if (key.Key == ConsoleKey.Z) //TODO: Suspend Process? Should be moved away from here when implemented
+                    {
+                    }
+                    */
                     if (key.Key == ConsoleKey.G)
                     {
                         if (!input.Any() && inputIndex == 0)
@@ -164,7 +172,6 @@ namespace ShaellLang
                         break;
                 }
                 
-
                 var (left, top) = Console.GetCursorPosition();
                 Console.CursorLeft = indexer.Length;
                 Console.Write(new string(' ', Console.BufferWidth - indexer.Length));
@@ -173,11 +180,11 @@ namespace ShaellLang
                 Console.Write(input.ToArray());
                 Console.SetCursorPosition(left, top);
             }
-
+            
             string _out = new string(input.ToArray());
-
+            
             if (_out.Length > 0)
-                File.AppendAllLines("testscripts/.shæll_history", new[] { $"{DateTime.Now:G}:{_out}" }); //TODO: temp, should be ~/.shæll_history
+                File.AppendAllText("testscripts/.shæll_history", $"{DateTime.Now:G}:{_out}\n"); //TODO: temp, should be ~/.shæll_history
             Console.WriteLine();
             return _out;
         }
