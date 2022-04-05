@@ -9,10 +9,8 @@ namespace ShaellLang
 
     class Program
     {
-        private static PlatformID OS;
         static void Main(string[] args)
         {
-            OS = Environment.OSVersion.Platform;
             bool interactivemode = args.Length < 1; //TODO: Adjust for Shæll-flags, and not just the users scripts flags
 
             Func<string> indexer = () => $"{Directory.GetCurrentDirectory().Split(new [] { '/', '\\' }).Last()} $ ";
@@ -24,7 +22,7 @@ namespace ShaellLang
                 input = () =>
                 {
                     Console.TreatControlCAsInput = true;
-                    string home = OS is PlatformID.Unix or PlatformID.MacOSX
+                    string home = Environment.OSVersion.Platform is PlatformID.Unix or PlatformID.MacOSX
                         ? Environment.GetEnvironmentVariable("HOME")
                         : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
                     input = () => ReadInput(home, indexer());
@@ -32,7 +30,6 @@ namespace ShaellLang
                         return File.ReadAllText($"{home}/.shællrc");
                     return input();
                 };
-                //TODO: load .shæll_history
             }
 
             var executer = interactivemode ? new ExecutionVisitor() : new ExecutionVisitor(args[1..]);
