@@ -20,6 +20,7 @@ FUNCTION: 'fn';
 GLOBAL: 'global';
 ASYNC: 'async';
 DEFER: 'defer';
+ARGS: 'args';
 LPAREN: '(';
 RPAREN: ')';
 LCURL: '{';
@@ -81,7 +82,7 @@ WHITESPACE: (' ' | '\t' | '\r' | '\n')+ -> skip;
 Lacks functions and comments
 */
 
-prog: stmts;
+prog: stmts | programArgs stmts;
 stmts: stmt*;
 stmt: ifStmt | forLoop | whileLoop | returnStatement | functionDefinition | expr;
 boolean: TRUE # TrueBoolean 
@@ -136,6 +137,7 @@ identifier:
     FILEIDENTFIER #FileIdentifier
     | VARIDENTFIER #VarIdentifier
     ;
+programArgs: ARGS LPAREN innerFormalArgList RPAREN;
 ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;
