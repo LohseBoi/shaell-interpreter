@@ -13,6 +13,7 @@ namespace ShaellLang
         {
             bool interactivemode = args.Length < 1; //TODO: Adjust for Shæll-flags, and not just the users scripts flags
 
+            //Gets working directory and sets the input to be either a script (if arguments are provided) or interactive mode
             Func<string> indexer = () => $"{Directory.GetCurrentDirectory().Split(new [] { '/', '\\' }).Last()} $ ";
             Func<string> input;
             if (!interactivemode)
@@ -31,8 +32,8 @@ namespace ShaellLang
                     return input();
                 };
             }
-
-            var executer = interactivemode ? new ExecutionVisitor() : new ExecutionVisitor(args[1..]);
+            
+            ExecutionVisitor executer = interactivemode ? new ExecutionVisitor() : new ExecutionVisitor(args[1..]);
 
             executer.SetGlobal("$print", new NativeFunc(delegate(IEnumerable<IValue> innerArgs)
             {
@@ -52,7 +53,7 @@ namespace ShaellLang
                 Console.WriteLine("Debug break");
                 return new SNull();
             }, 0));
-
+            
             do
             {
                 try
@@ -76,6 +77,12 @@ namespace ShaellLang
 
         }
 
+        /// <summary>
+        /// Reads input from user, char by char. Responds to up/down arrow keys, inputting previous commands.
+        /// </summary>
+        /// <param name="home">Path to home-directory, where the history file is.</param>
+        /// <param name="indexer">String to be pasted before the command prompt (usually the current directory.</param>
+        /// <returns></returns>
         private static string ReadInput(string home, string indexer)
         {
             List<char> input = new List<char>();
@@ -85,9 +92,9 @@ namespace ShaellLang
             List<string> cmdHistory = new List<string> { "" };
             if (File.Exists($"{home}/.shæll_history"))
                 cmdHistory.AddRange(File.ReadLines($"{home}/.shæll_history").Reverse()
-                    .Select(x => x.Substring(x.IndexOf(':') + 1)));
+                    .Select(x => x.Substring(x.IndexOf(':') + 1))); //TODO: optimize(?) to not read the whole file in the beginning
             
-            while (Console.ReadKey() is var key && key is not {Key: ConsoleKey.Enter})
+            while (Console.ReadKey() is var key && key is not {Key: ConsoleKey.Enter}) //Reads input, and stops if it is 'Enter'
             {
                 if (key.Modifiers == ConsoleModifiers.Control)
                 {
@@ -117,7 +124,7 @@ namespace ShaellLang
                     }
                 }
 
-                switch (key.Key)
+                switch (key.Key) //Reacts to some specific keys
                 {
                     case ConsoleKey.LeftArrow:
                         if (inputIndex != 0)
@@ -157,7 +164,7 @@ namespace ShaellLang
                         }
                         break;
                 }
-                
+                //Writes the command-text to the console
                 Console.CursorLeft = indexer.Length;
                 Console.Write(new string(' ', Console.BufferWidth - indexer.Length - 1));
                 Console.CursorLeft = indexer.Length;
@@ -167,6 +174,7 @@ namespace ShaellLang
             
             string @out = new string(input.ToArray());
             
+            // saves command in history (including the timestamp of the commands) if there was any content in the command.
             if (@out.Length > 0)
                 File.AppendAllText($"{home}/.shæll_history", $"{DateTime.Now:MM/dd/yyyy HH.mm.ss}:{@out}\n");
             Console.WriteLine();
