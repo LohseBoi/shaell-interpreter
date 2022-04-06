@@ -4,7 +4,7 @@
     $tab2 = { c = 3, d = 4 }
     
     #Act
-    $tab1:add_meta_table($tab2)
+    $tab1:set_meta_table($tab2)
     
     #Assert
     $A:assert($tab1:c == 3, "meta table not added")
@@ -16,7 +16,7 @@ fn $meta_tables_can_be_added_with_table_lib()
     $tab2 = { c = 3, d = 4 }
     
     #Act
-    $T:add_meta_table($tab1, $tab2)
+    $T:set_meta_table($tab1, $tab2)
     
     #Assert
     $A:assert($tab1:c == 3, "meta table not added")
@@ -28,7 +28,7 @@ fn $meta_table_entries_are_shadowed()
     $tab2 = { c = 3, d = 4 }
     
     #Act
-    $tab1:add_meta_table($tab2)
+    $tab1:set_meta_table($tab2)
     
     #Assert
     $A:assert($tab1:c == 5, "meta table entry not shadowed")
@@ -41,10 +41,15 @@ fn $meta_table_can_be_replaced()
     $tab3 = { e = 5, f = 6 }
     
     #Act
-    $tab1:add_meta_table($tab2)
-    $tab1:add_meta_table($tab3)
+    $tab1:set_meta_table($tab2)
+    $tab1:set_meta_table($tab3)
     
     #Assert
     $A:assert($tab1:c == 5, "meta table entry not shadowed")
     $A:assert($tab1:e == 5, "meta table entry not added")
 end
+
+$A:describe("Test add meta table", $meta_tables_can_be_added)
+#$A:describe("Test add meta table with table lib", $meta_tables_can_be_added_with_table_lib)
+#$A:describe("Test table entries are shadowed", $meta_table_entries_are_shadowed)
+#$A:describe("Test meta table can be replaced", $meta_table_can_be_replaced)
