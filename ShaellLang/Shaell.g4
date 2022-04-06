@@ -124,6 +124,7 @@ expr: STRINGLITERAL # StringLiteralExpr
 	|<assoc=right> expr DIVEQ expr # DivEqExpr
     |<assoc=right> expr MODEQ expr # ModEqExpr
     |<assoc=right> expr POWEQ expr # PowEqExpr
+    |anonFunctionDefinition # AnonFnDefinition
 	;
 objfields:
     FILEIDENTFIER # FieldIdentifier
@@ -139,4 +140,5 @@ ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;
 functionDefinition: FUNCTION VARIDENTFIER LPAREN innerFormalArgList RPAREN stmts END;
+anonFunctionDefinition: FUNCTION LPAREN innerFormalArgList RPAREN stmts END;
 returnStatement: RETURN expr;

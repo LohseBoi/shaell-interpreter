@@ -140,7 +140,23 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         
         return null;
     }
-    
+
+    public override IValue VisitAnonFunctionDefinition(ShaellParser.AnonFunctionDefinitionContext context)
+    {
+        var formalArgIdentifiers = new List<string>();
+        foreach (var formalArg in context.innerFormalArgList().VARIDENTFIER())
+        {
+            formalArgIdentifiers.Add(formalArg.GetText());
+        }
+
+        return new UserFunc(
+            _globalScope,
+            context.stmts(),
+            _scopeManager.CopyScopes(),
+            formalArgIdentifiers
+        );
+    }
+
     public override IValue VisitExpr(ShaellParser.ExprContext context)
     {
         throw new Exception("nejnejnej");
@@ -149,13 +165,14 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitAssignExpr(ShaellParser.AssignExprContext context)
     {
         var lhs = Visit(context.expr(0));
-        
-        if (lhs is not RefValue)
+
+        var value = lhs as RefValue;
+        if (value == null)
         {
             throw new Exception("Tried to assign to non ref");
         }
 
-        RefValue refLhs = lhs as RefValue;
+        RefValue refLhs = value;
 
         var rhs = Visit(context.expr(1));
         if (rhs is RefValue)
