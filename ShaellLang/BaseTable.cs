@@ -51,7 +51,7 @@ public class BaseTable : BaseValue, ITable
 
     protected RefValue Insert(int key, RefValue value)
     {
-        if (key >= ArrayLength)
+        if (key == ArrayLength)
         {
             _consecutiveValues.Add(value);
             MoveConsecutiveValues();
