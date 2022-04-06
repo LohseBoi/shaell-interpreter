@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Antlr4.Runtime.Tree;
 
@@ -490,7 +491,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         var num = context.NUMBER().GetText();
 
         if (num.Contains(".")) 
-            return new Number(double.Parse(num));
+            return new Number(double.Parse(num, CultureInfo.InvariantCulture));
 
         return new Number(long.Parse(num));
     }
