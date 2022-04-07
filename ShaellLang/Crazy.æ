@@ -1,4 +1,5 @@
-﻿$per = 2 + 1
+﻿$print($per)
+$per = 2 + 1
 
 fn $printHalloShaell($nej)
     $print("Hej fra shæll :)")
