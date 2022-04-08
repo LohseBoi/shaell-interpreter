@@ -1,5 +1,13 @@
-﻿$print($per)
-$per = 2 + 1
+﻿$per = 2 + 1
+$benis = "benis }"
+
+
+fn $g()
+    $print("gay")
+    return 69
+end
+
+$print("Hello from denmark \n hello } team ${2}")
 
 fn $printHalloShaell($nej)
     $print("Hej fra shæll :)")

@@ -9,9 +9,6 @@ public class UnitTest1
     [Fact]
     public void Test1()
     {
-        // Arrange
-        ShaellLang shaellLang = new ShaellLang();
-        
         // Act  
         bool testFailed = shaellLang.Run("../../../test.æ", new string[]{"test.æ", ""});
 
@@ -25,6 +22,16 @@ public class UnitTest1
         // Act  
         bool testFailed = shaellLang.Run("../../../metatable.æ", new string[]{"metatable.æ", ""});
 
+        // Assert
+        Assert.False(testFailed);
+    }
+
+    [Fact]
+    public void TestStringInterpolation()
+    {
+        // Act
+        bool testFailed = shaellLang.Run("../../../stringinterpolation.æ", new string[]{"string_interpolation.æ", ""});
+        
         // Assert
         Assert.False(testFailed);
     }

@@ -23,8 +23,6 @@ namespace ShaellLang
 		/// <returns>The value that is tied to the key</returns>
 		public override RefValue GetValue(IKeyable key)
 		{
-			RefValue value;
-			
 			if (ContainsKey(key))
 				 return base.GetValue(key);
 

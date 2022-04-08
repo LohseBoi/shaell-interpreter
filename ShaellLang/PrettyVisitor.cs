@@ -2,7 +2,7 @@ using System;
 
 namespace ShaellLang
 {
-    public class PrettyVisitor : ShaellBaseVisitor<object>
+    public class PrettyVisitor : ShaellParserBaseVisitor<object>
     {
         private int indentLevel = 0;
         private string indent => new string('\t', indentLevel);
@@ -46,7 +46,7 @@ namespace ShaellLang
 
         public override object VisitStringLiteralExpr(ShaellParser.StringLiteralExprContext literal)
         {
-            Console.Write($"{literal.STRINGLITERAL()}");
+            //Console.Write($"{literal.STRINGLITERAL()}");
             return null;
         }
 

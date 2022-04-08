@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Globalization;
 using System.Linq;
 using Antlr4.Runtime;
@@ -7,7 +8,7 @@ using Antlr4.Runtime.Tree;
 
 namespace ShaellLang;
 
-public class ExecutionVisitor : ShaellBaseVisitor<IValue>
+public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 {
     private ScopeManager _scopeManager;
     private ScopeContext _globalScope;
@@ -21,7 +22,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         _args = args;
         _shouldReturn = false;
     }
-    
     public ExecutionVisitor()
     {
         _globalScope = new ScopeContext();
@@ -29,7 +29,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         _scopeManager.PushScope(_globalScope);
         _shouldReturn = false;
     }
-    
+
     public ExecutionVisitor(ScopeContext globalScope, ScopeManager scopeManager)
     {
         _globalScope = globalScope;
@@ -43,7 +43,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         {
             return Visit(context);
         }
-        catch (SemanticError ex)
+        catch (SemanticError)
         {
             throw;
         }
@@ -210,7 +210,37 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
         return refLhs.Get();
     }
+    
+    #region STRING_INTERPOLATION
+    
+    public override IValue VisitInterpolation(ShaellParser.InterpolationContext context)
+    {
+        var expr = SafeVisit(context.expr());
+        return expr.ToSString();
+    }
+    
+    public override IValue VisitStringLiteralExpr(ShaellParser.StringLiteralExprContext context)
+    {
+        StringBuilder sb = new StringBuilder();
 
+        foreach (var content in context.strcontent())
+        {
+            sb.Append(SafeVisit(content).ToSString().Val);
+        }
+
+        return new SString(sb.ToString());
+    }
+
+    public override IValue VisitStringLiteral(ShaellParser.StringLiteralContext context)
+    {
+        string str = context.TEXT().GetText();  
+        if (str.Contains("\\n"))
+            str = str.Replace("\\n","\n");
+        
+        return new SString(str);
+    }
+    #endregion
+    
     #region ARITHMETIC_EXPRESSIONS
     public override IValue VisitAddExpr(ShaellParser.AddExprContext context)
     {
@@ -548,12 +578,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return rhs;
     }
 
-    public override IValue VisitStringLiteralExpr(ShaellParser.StringLiteralExprContext context)
-    {
-        return new SString(context.STRINGLITERAL().GetText()[1..^1]);
-    }
-    
-    
     //Visit PosExpr and return the value with toNumber
     public override IValue VisitPosExpr(ShaellParser.PosExprContext context)
     {
