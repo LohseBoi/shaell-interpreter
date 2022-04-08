@@ -72,7 +72,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
             _scopeManager.PushScope(new ScopeContext());
         foreach (var stmt in context.stmt())
         {
-            IValue rv = VisitStmt(stmt);
+            IValue rv = SafeVisit(stmt);
             if (_shouldReturn)
             {
                 if (_scopeManager.PeekScope() == _globalScope)
