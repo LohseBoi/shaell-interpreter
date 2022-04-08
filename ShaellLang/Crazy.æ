@@ -33,6 +33,9 @@ $medCallback($callbackfn(5))
 
 $print("Hællo from shæll!")
 
+$test = {thing = 1}
+$print($test:thing)
+$print($test:thing)
 $str = "abcdefg"
 
 $i = 0

@@ -16,11 +16,11 @@ public class NativeTable : ITable
         valueLookup[key] = value;
     }
 
-    public virtual RefValue GetValue(IKeyable key)
+    public virtual RefValue GetValue(IValue key)
     {
-        if (key is SString)
+        if (key is SString stringKey)
         {
-            if (valueLookup.TryGetValue(key.KeyValue, out IValue val))
+            if (valueLookup.TryGetValue(stringKey.Val, out IValue val))
             {
                 return new RefValue(val);
             }
@@ -29,7 +29,7 @@ public class NativeTable : ITable
         return null;
     }
 
-    public virtual void RemoveValue(IKeyable key)
+    public virtual void RemoveValue(IValue key)
     {
         return;
     }

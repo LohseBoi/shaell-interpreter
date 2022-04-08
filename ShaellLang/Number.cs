@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace ShaellLang
 {
-    public class Number : BaseValue, IKeyable
+    public class Number : BaseValue
     {
         private dynamic _numberRepresentation;
 
@@ -27,13 +27,7 @@ namespace ShaellLang
         public bool IsFloating => _numberRepresentation is double;
 
         public long ToInteger() => Convert.ToInt64(_numberRepresentation);
-
-        public int ToInt32()
-        {
-            if(_numberRepresentation <= int.MaxValue) 
-                return Convert.ToInt32(_numberRepresentation);
-            else throw new Exception("Number is too big to convert to int");
-        } 
+        
         public double ToFloating() => Convert.ToDouble(_numberRepresentation);
         public string KeyValue => Convert.ToString(_numberRepresentation);
         public string UniquePrefix => "N";
@@ -58,6 +52,21 @@ namespace ShaellLang
         {
             _numberTable.Number = this; //TODO: this is a hack, fix it
             return _numberTable;
+        }
+
+        public override int GetHashCode()
+        {
+            return ("N" + ToSString().Val).GetHashCode();
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Number number)
+            {
+                return IsEqual(number);
+            }
+
+            return false;
         }
 
         public static Number operator +(Number a, Number b)

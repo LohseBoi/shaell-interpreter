@@ -69,7 +69,7 @@ public class BString : BaseValue, ITable
         return false;
     }
 
-    public RefValue GetValue(IKeyable key)
+    public RefValue GetValue(IValue key)
     {
         if (key is Number numberKey)
         {
@@ -86,7 +86,7 @@ public class BString : BaseValue, ITable
         return _table.GetValue(key);
     }
 
-    public void RemoveValue(IKeyable key)
+    public void RemoveValue(IValue key)
     {
         return;
     }

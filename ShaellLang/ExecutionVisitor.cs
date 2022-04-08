@@ -627,12 +627,9 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         {
             rhs = refValue.Get();
         }
-
-        if (rhs is IKeyable rhsKeyable)
-        {
-            return lhs.ToTable().GetValue(rhsKeyable);
-        }
         
+        return lhs.ToTable().GetValue(rhs.Unpack());
+
         throw new Exception("Cannot index with a non-keyable value");
     }
     
@@ -644,7 +641,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         for (int i = 0; i < context.expr().Length; i++)
         {
             IValue key = SafeVisit(context.objfields()[i]);
-            RefValue value = @out.GetValue(key as IKeyable);
+            RefValue value = @out.GetValue(key.Unpack());
             value.Set(SafeVisit(context.expr()[i]));
         }
 
@@ -662,7 +659,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
                 var table = new UserTable();
                 for (int i = 0; i < _args.Length; i++)
                 {
-                    table.Insert(new Number(i), new RefValue(new SString(_args[i])));
+                    table.SetValue(new Number(i), new RefValue(new SString(_args[i])));
                     _scopeManager.SetValue(userVar.GetText(), table);
                 }
                 return null;
