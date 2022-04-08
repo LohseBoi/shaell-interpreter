@@ -55,4 +55,6 @@ public class ScopeManager
         }
 
     }
+
+    public ScopeContext PeekScope() => _scopes.Last();
 }

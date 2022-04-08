@@ -42,6 +42,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     {
         if (context.children.Count == 2)
             VisitProgramArgs(context.programArgs());
+        //Environment.Exit((int)VisitStmts(context.stmts(), false).ToNumber().ToInteger());
         VisitStmts(context.stmts(), false);
         return null;
     }
@@ -52,9 +53,11 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
             _scopeManager.PushScope(new ScopeContext());
         foreach (var stmt in context.stmt())
         {
-            var rv = VisitStmt(stmt);
+            IValue rv = VisitStmt(stmt);
             if (_shouldReturn)
             {
+                if (_scopeManager.PeekScope() == _globalScope)
+                    Environment.Exit((int)rv.ToNumber().ToInteger()); //TODO: return statement w/o expr equates to 0?
                 _shouldReturn = false;
                 return rv;
             }
