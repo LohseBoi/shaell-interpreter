@@ -63,7 +63,7 @@ BANDEQ: '&=';
 BXOREQ: '^=';
 BOREQ: '|=';
 MODEQ: '%=';
-POWEQ: '**=';
+POWEQ: '**='; 
 RSHIFTEQ: '>>=';
 LSHIFTEQ: '<<=';
 FALSE: 'false';
@@ -76,6 +76,7 @@ DQUOTE: '"';
 SQUOTE: '\'';
 STRINGLITERAL: '"' ~('"' | '\n')* '"';
 COMMENT : '#' ~('\n')* (('\r'? '\n') | EOF) -> skip;
+MULTILINECOMMENT : '/*'(.)*? (MULTILINECOMMENT | .)*? '*/' -> skip;
 WHITESPACE: (' ' | '\t' | '\r' | '\n')+ -> skip;
 
 /*
