@@ -627,18 +627,23 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
     public override IValue VisitProgramArgs(ShaellParser.ProgramArgsContext context)
     {
-        int i = 0;
-        foreach (var formal in context.innerFormalArgList().VARIDENTFIER())
+        var lastUserVar = context.innerFormalArgList().VARIDENTFIER().Last();
+
+        foreach (var userVar in context.innerFormalArgList().VARIDENTFIER())
         {
-            if (i < _args.Length)
+            if (userVar.Equals(lastUserVar) && _args.Length != 1)
             {
-                _scopeManager.SetValue(formal.GetText(), new SString(_args[i]));
+                var table = new UserTable();
+                for (int i = 0; i < _args.Length; i++)
+                {
+                    table.Insert(new Number(i), new RefValue(new SString(_args[i])));
+                    _scopeManager.SetValue(userVar.GetText(), table);
+                }
+                return null;
             }
-            else
-            {
-                _scopeManager.SetValue(formal.GetText(), new SNull());
-            }
-            i++;
+
+            _scopeManager.SetValue(userVar.GetText(), new SString(_args[0]));
+            _args = _args.Skip(1).ToArray();
         }
         return null;
     }
