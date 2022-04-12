@@ -21,7 +21,26 @@ public static class TestLib
         userTable
             .GetValue(new SString("describe"))
             .Set(new NativeFunc(DescribeFunc, 2));
+        userTable
+            .GetValue(new SString("assertEqual"))
+            .Set(new NativeFunc(AssertEqualFunc, 2));
         return userTable;
+    }
+
+    private static IValue AssertEqualFunc(IEnumerable<IValue> args)
+    {
+        var argArr = args.ToArray();
+        if (argArr.Length < 3)
+        {
+            throw new Exception("assert: too few arguments");
+        }
+        
+        if (!argArr[0].IsEqual(argArr[1]))
+        {
+            throw new Exception($"assert: \"{argArr[2]}\" expected \"{argArr[0]}\" but got \"{argArr[1]}\"");
+        }
+
+        return new SNull();
     }
 
     private static IValue AssertFunc(IEnumerable<IValue> args)

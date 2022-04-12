@@ -86,7 +86,7 @@ public class SFile : BaseValue
 
     public override Number ToNumber() => throw new Exception("Type error, File cannot be convert to number.");
 
-    public override IFunction ToFunction() => new SProcess(_path);
+    public override IFunction ToFunction() => new SProcessFuncWrap(_path);
 
     public override SString ToSString() => new (_path);
 

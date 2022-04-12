@@ -50,7 +50,6 @@ expr: DQUOTE strcontent* END_STRING # StringLiteralExpr
     |<assoc=right> expr MODEQ expr # ModEqExpr
     |<assoc=right> expr POWEQ expr # PowEqExpr
     |anonFunctionDefinition # AnonFnDefinition
-    |LPAREN innerFormalArgList RPAREN LAMBDA (expr | DO stmts END) # InlineFnDefinition
 	;
 strcontent:
     NEWLINE # NewLine
@@ -67,6 +66,8 @@ programArgs: ARGS LPAREN innerFormalArgList RPAREN;
 ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;
-functionDefinition: FUNCTION IDENTIFIER LPAREN innerFormalArgList RPAREN stmts END;
-anonFunctionDefinition: FUNCTION LPAREN innerFormalArgList RPAREN stmts END;
+functionDefinition: FUNCTION IDENTIFIER LPAREN innerFormalArgList RPAREN functionBody;
+anonFunctionDefinition: FUNCTION LPAREN innerFormalArgList RPAREN functionBody;
+functionBody: stmts END
+    | LAMBDA expr;
 returnStatement: RETURN expr;

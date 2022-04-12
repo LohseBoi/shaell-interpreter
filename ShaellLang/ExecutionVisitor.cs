@@ -22,6 +22,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         _args = args;
         _shouldReturn = false;
     }
+
     public ExecutionVisitor()
     {
         _globalScope = new ScopeContext();
@@ -85,19 +86,20 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
             _scopeManager.PopScope();
         return null;
     }
+    
     public override IValue VisitStmts(ShaellParser.StmtsContext context) => VisitStmts(context, true);
 
     public override IValue VisitStmt(ShaellParser.StmtContext context)
     {
         if (context.children.Count == 1)
         {
-            var child = Visit(context.children[0]);
-            if (child is SProcess proc)
+            var val = SafeVisit(context.children[0] as ParserRuleContext);
+            if (val is SProcess proc)
             {
-                var jo = proc.Execute().ToJobObject();
-                return jo;
+                proc.Run();
             }
-            return child;
+
+            return val;
         }
         throw new Exception("No no no");
     }
@@ -168,7 +170,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
             context.IDENTIFIER().GetText(),
             new UserFunc(
                 _globalScope, 
-                context.stmts(), 
+                context.functionBody(), 
                 _scopeManager.CopyScopes(), 
                 formalArgIdentifiers
                 )
@@ -187,38 +189,18 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 
         return new UserFunc(
             _globalScope,
-            context.stmts(),
+            context.functionBody(),
             _scopeManager.CopyScopes(),
             formalArgIdentifiers
         );
     }
-    public override IValue VisitInlineFnDefinition(ShaellParser.InlineFnDefinitionContext context)
+    public override IValue VisitFunctionBody(ShaellParser.FunctionBodyContext context)
     {
-        var formalArgIdentifiers = new List<string>();
-        foreach (var formalArg in context.innerFormalArgList().IDENTIFIER())
-        {
-            formalArgIdentifiers.Add(formalArg.GetText());
-        }
-
-        ShaellParser.StmtsContext stmts = context.stmts();
-        if (context.DO() == null)
-        {
-            ShaellParser.StmtContext k =
-                new ShaellParser.StmtContext(
-                    new ShaellParser.ReturnStatementContext(context.expr(), 281), 47);
-            stmts = new ShaellParser.StmtsContext(context, context.invokingState);
-            stmts.AddChild(k);
-            Console.WriteLine(stmts.GetText());
-            Console.WriteLine("EXP");
-        }
-        return new UserFunc(
-            _globalScope,
-            stmts,
-            _scopeManager.CopyScopes(),
-            formalArgIdentifiers
-        );
+        if (context.LAMBDA() == null)
+            return SafeVisit(context.stmts());
+        else
+            return SafeVisit(context.expr());
     }
-
     public override IValue VisitExpr(ShaellParser.ExprContext context)
     {
         throw new Exception("nejnejnej");
@@ -581,12 +563,6 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
             args.Add(val);
         }
 
-        if (lhs is SProcess proc)
-        {
-            proc.AddArguments(args);
-            return proc;
-        }
-
         return lhs.Call(args);
     }
 
@@ -595,8 +571,10 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0)).ToSProcess();
         var rhs = SafeVisit(context.expr(1)).ToSProcess();
 
-        rhs.LeftProcess = lhs;
+        lhs.Out.Pipe(rhs.In);
         
+        lhs.Run();
+
         return rhs;
     }
 

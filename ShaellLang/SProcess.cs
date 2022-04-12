@@ -1,93 +1,65 @@
-﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using System.Text;
+using ProcessLib;
 
 namespace ShaellLang;
 
-public class SProcess : BaseValue, IFunction
+public class SProcess
+    : BaseValue
 {
-    public Process Process = new Process();
-    public SProcess LeftProcess;
-    public string Stdin = null;
-    public bool Executed { get; private set; }
-    public SProcess(string file) 
-        : base("process")
-    {
-        IPathFinder pathFinder;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            pathFinder = new WindowsPathFinder();
-            Process.StartInfo.FileName = pathFinder.GetAbsolutePath(file);
-        } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            pathFinder = new UnixPathFinder();
-            Process.StartInfo.FileName = pathFinder.GetAbsolutePath(file);
-        }
-    }
-
-    public void AddArguments(IEnumerable<IValue> args)
-    {
-        foreach (var arg in args)
-        {
-            AddArg(arg.ToSString().Val);
-        }
-    }
-
-    public void AddPipeProcess(SProcess process)
-    {
-        LeftProcess = process;
-    }
-
-    private void AddArg(string str) => Process.StartInfo.ArgumentList.Add(str);
-    public void Dispose() => Process.Dispose();
-
-    private JobObject Run(Process process, string stdin)
-    {
-        if (!Executed)
-        {
-            Executed = true;
-            return JobObject.Factory.StartProcess(process, stdin);
-        }
-
-        return null;
-    }
-
-    public IValue Call(IEnumerable<IValue> args)
-    {
-        AddArguments(args);
-        return Run(Process, Stdin);
-    }
-
-    public JobObject Execute(SProcess parentProc)
-    {
-        JobObject jo = LeftProcess?.Execute(this).ToJobObject();
-        jo = Run(Process, jo?.ToString()).ToJobObject();
-
-        if(parentProc != null)
-            parentProc.Stdin = jo?.ToString();
-        return jo;
-    }
+    private IEnumerable<string> _args;
+    private ExternalProgram _externalProgram;
+    private SString _storedOut;
+    private SString _storedErr;
+    private bool _hasBeenRun;
+    public IReadStream Out { get; }
+    public IReadStream Err { get; }
+    public IWriteStream In { get; }
     
-    public JobObject Execute()
+    public SProcess(string filename, IEnumerable<string> args) 
+        : base("sprocess")
     {
-        JobObject jo = LeftProcess?.Execute(this).ToJobObject();
-        jo = Run(Process, jo?.ToString()).ToJobObject();
+        _args = args;
+        _externalProgram = new ExternalProgram(filename, args);
+        _hasBeenRun = false;
+        Out = _externalProgram.Out;
+        Err = _externalProgram.Err;
+        In = _externalProgram.In;
         
-        return jo;
+        
     }
-    
-    public override IFunction ToFunction() => this;
-    public override SProcess ToSProcess() => this;
 
-    public override ITable ToTable() => Execute().ToTable();
-
-    public override bool IsEqual(IValue other)
+    public void Run()
     {
-        return other == this;
+        var outWriteStream = new StringWriteStream("");
+        var errWriteStream = new StringWriteStream("");
+        _externalProgram.Out.Pipe(outWriteStream);
+        _externalProgram.Err.Pipe(errWriteStream);
+        _externalProgram.Start();
+        var task = _externalProgram.Wait();
+        task.Wait();
+
+        _storedOut = new SString(outWriteStream.Val);
+        _storedErr = new SString(errWriteStream.Val);
+        _hasBeenRun = true;
     }
 
-    public uint ArgumentCount => (uint)Process.StartInfo.ArgumentList.Count;
+    public override ITable ToTable()
+    {
+        if (!_hasBeenRun)
+            Run();
+        var table = new BaseTable("Process");
+        
+        table.SetValue(new SString("out"), _storedOut);
+        table.SetValue(new SString("err"), _storedErr);
+        return table;
+    }
+
+    public override SProcess ToSProcess()
+    {
+        return this;
+    }
+
+    public override bool IsEqual(IValue other) => this == other;
 }

@@ -6,14 +6,14 @@ namespace ShaellLang;
 
 public class UserFunc : BaseValue, IFunction
 {
-    private ShaellParser.StmtsContext _funcStmts;
+    private ShaellParser.FunctionBodyContext _funcStmts;
     private ScopeManager _capturedScope;
     private List<string> _formalArguments;
     private ScopeContext _globalScope;
 
     public UserFunc(
         ScopeContext globalScope, 
-        ShaellParser.StmtsContext funcStmts, 
+        ShaellParser.FunctionBodyContext funcStmts, 
         ScopeManager capturedScope, 
         List<string> formalArguments
         ) : base("userfunc")
@@ -37,10 +37,8 @@ public class UserFunc : BaseValue, IFunction
         }
 
         var executioner = new ExecutionVisitor(_globalScope, activeScopeManager);
-
-        var jo = new JobObject(executioner.VisitStmts(_funcStmts));
-
-        return jo;
+        
+        return executioner.VisitFunctionBody(_funcStmts);
     }
 
     public uint ArgumentCount => 0;

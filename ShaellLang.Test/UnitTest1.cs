@@ -46,4 +46,14 @@ public class UnitTest1
         Assert.False(testFailed);
     }
     
+    [Fact]
+    public void TestProcess()
+    {
+        // Act
+        bool testFailed = shaellLang.Run("../../../ProcessTest.æ", new string[]{"ProcessTest.æ", ""});
+        
+        // Assert
+        Assert.False(testFailed);
+    }
+
 }

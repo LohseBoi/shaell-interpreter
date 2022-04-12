@@ -1,0 +1,6 @@
+
+#These tests require a echo program to be installed
+A:describe("process should be piped and executed", fn()
+    let result = echo("test")
+    A:assertEqual("test", result:out, "echo should output test to stdout")
+end)
