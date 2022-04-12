@@ -1,99 +1,22 @@
-grammar Shaell;
+parser grammar ShaellParser;
 
-IF: 'if';
-THEN: 'then';
-ELSEIF: 'elseif';
-ELSE: 'else';
-END: 'end';
-WHILE: 'while';
-DO: 'do';
-FOREACH: 'foreach';
-FOR: 'for';
-SWITCH: 'switch';
-ON: 'on';
-IN: 'in';
-CASE: 'case';
-RETURN: 'return';
-CONTINUE: 'continue';
-BREAK: 'break';
-FUNCTION: 'fn';
-GLOBAL: 'global';
-ASYNC: 'async';
-DEFER: 'defer';
-ARGS: 'args';
-LPAREN: '(';
-RPAREN: ')';
-LCURL: '{';
-RCURL: '}';
-LSQUACKET: '[';
-RSQUACKET: ']';
-COLON: ':';
-DEREF: '@';
-DOLLAR: '$';
-LNOT: '!';
-BNOT: '~';
-MULT: '*';
-POW: '**';
-DIV: '/';
-MOD: '%';
-PLUS: '+';
-MINUS: '-';
-LSHIFT: '<<';
-RSHIFT: '>>';
-LT: '<';
-GT: '>';
-GEQ: '>=';
-LEQ: '<=';
-EQ: '==';
-NEQ: '!=';
-BAND: '&';
-BXOR: '^';
-BOR: '|';
-LAND: '&&';
-LOR: '||';
-NULLCOAL: '??';
-PIPE: '->';
-ASSIGN: '=';
-COMMA: ',';
-PLUSEQ: '+=';
-MINUSEQ: '-=';
-MULTEQ: '*=';
-DIVEQ: '/=';
-BANDEQ: '&=';
-BXOREQ: '^=';
-BOREQ: '|=';
-MODEQ: '%=';
-POWEQ: '**='; 
-RSHIFTEQ: '>>=';
-LSHIFTEQ: '<<=';
-FALSE: 'false';
-TRUE: 'true';
-NULL: 'null';
-FILEIDENTFIER: [a-zA-Z_.][a-zA-Z0-9_.$]*;
-VARIDENTFIER: DOLLAR [a-zA-Z0-9_.$]*;
-NUMBER: [0-9]+('.'[0-9]+)?;
-DQUOTE: '"';
-SQUOTE: '\'';
-STRINGLITERAL: '"' ~('"' | '\n')* '"';
-COMMENT : '#' ~('\n')* (('\r'? '\n') | EOF) -> skip;
-MULTILINECOMMENT : '/*'(.)*? (MULTILINECOMMENT | .)*? '*/' -> skip;
-WHITESPACE: (' ' | '\t' | '\r' | '\n')+ -> skip;
-
-/*
-Lacks functions and comments
-*/
+options {
+    tokenVocab = 'ShaellLexer';
+}
 
 prog: stmts | programArgs stmts;
 stmts: stmt*;
 stmt: ifStmt | forLoop | whileLoop | returnStatement | functionDefinition | expr;
-boolean: TRUE # TrueBoolean 
+boolean: 
+    TRUE # TrueBoolean 
     | FALSE # FalseBoolean
     ;
-expr: STRINGLITERAL # StringLiteralExpr
+expr: DQUOTE strcontent* END_STRING # StringLiteralExpr
+    | LET IDENTIFIER # LetExpr
     | NUMBER # NumberExpr
     | NULL # NullExpr
 	| boolean # BooleanExpr
-	| identifier # IdentifierExpr
+	| IDENTIFIER # IdentifierExpr
 	| LPAREN expr RPAREN # Parenthesis
 	| LCURL (objfields ASSIGN expr (COMMA objfields ASSIGN expr)*)? RCURL #ObjectLiteral
 	|<assoc=right> DEREF expr # DerefExpr
@@ -101,7 +24,7 @@ expr: STRINGLITERAL # StringLiteralExpr
 	|<assoc=right> BNOT expr # BnotExpr
 	|<assoc=right> MINUS expr # NegExpr
 	|<assoc=right> PLUS expr # PosExpr
-	| expr COLON identifier # IdentifierIndexExpr
+	| expr COLON IDENTIFIER # IdentifierIndexExpr
 	| expr LSQUACKET expr RSQUACKET # SubScriptExpr
 	| expr LPAREN innerArgList RPAREN # FunctionCallExpr
 	| expr POW expr # PowExpr
@@ -128,20 +51,21 @@ expr: STRINGLITERAL # StringLiteralExpr
     |<assoc=right> expr POWEQ expr # PowEqExpr
     |anonFunctionDefinition # AnonFnDefinition
 	;
+strcontent:
+    NEWLINE # NewLine
+    | INTERPOLATION expr STRINGCLOSEBRACE # Interpolation
+    | TEXT # StringLiteral
+    ;
 objfields:
-    FILEIDENTFIER # FieldIdentifier
+    IDENTIFIER # FieldIdentifier
     | LSQUACKET expr RSQUACKET #FieldExpr
     ;
 innerArgList: (expr (COMMA expr)*)?;
-innerFormalArgList: (VARIDENTFIER (COMMA VARIDENTFIER)*)?;
-identifier: 
-    FILEIDENTFIER #FileIdentifier
-    | VARIDENTFIER #VarIdentifier
-    ;
+innerFormalArgList: (IDENTIFIER (COMMA IDENTIFIER)*)?;
 programArgs: ARGS LPAREN innerFormalArgList RPAREN;
 ifStmt: IF expr THEN stmts (ELSE stmts)? END;
 forLoop: FOR expr COMMA expr COMMA expr DO stmts END;
 whileLoop: WHILE expr DO stmts END;
-functionDefinition: FUNCTION VARIDENTFIER LPAREN innerFormalArgList RPAREN stmts END;
+functionDefinition: FUNCTION IDENTIFIER LPAREN innerFormalArgList RPAREN stmts END;
 anonFunctionDefinition: FUNCTION LPAREN innerFormalArgList RPAREN stmts END;
 returnStatement: RETURN expr;

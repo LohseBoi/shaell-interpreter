@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,24 +22,28 @@ namespace ShaellLang
 		/// </summary>
 		/// <param name="key">The key to search for.</param>
 		/// <returns>The value that is tied to the key</returns>
-		public override RefValue GetValue(IKeyable key)
+		public override RefValue GetValue(IValue key)
 		{
-			RefValue value;
-			
-			if (ContainsKey(key))
-				 return base.GetValue(key);
+			RefValue value = base.GetValue(key);
+			if (value != null)
+				return value;
 
-			if (MetaTable?.ContainsKey(key) != null) 
-				 return MetaTable.GetValue(key);
+			value = MetaTable?.GetValue(key);
+			if (value != null)
+				return value;
 
-			return InsertEmpty(key);
+			return base.SetNewValue(key, new SNull());
 		}
 
 		public IValue SetMetaTableFunc(IEnumerable<IValue> args)
 		{
-			var table = args.First() as UserTable;
-			MetaTable = table;
-			return MetaTable;
+			var argsArr = args.ToArray();
+			if (argsArr.Length != 1)
+				throw new ArgumentException("Expected 1 argument");
+			if (argsArr[0] is not UserTable)
+				throw new Exception("Expected UserTable");
+			MetaTable = argsArr[0] as UserTable;
+			return new SNull();
 		}
 
 	}

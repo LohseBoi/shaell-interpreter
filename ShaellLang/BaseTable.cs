@@ -5,8 +5,9 @@ namespace ShaellLang;
 
 public class BaseTable : BaseValue, ITable
 {
-    private Dictionary<string, RefValue> _values = new();
-    //Store the array values in order
+    //Store all values that cannot be stored in an array
+    private Dictionary<IValue, RefValue> _values = new();
+    //Store the integer keys that are not consecutive
     private SortedDictionary<int, RefValue> _sortedValues = new();
     //Store the integer keys in an array
     private List<RefValue> _consecutiveValues = new();
@@ -15,94 +16,85 @@ public class BaseTable : BaseValue, ITable
     { }
 
     /// <summary>
-    /// Check if the table contains a value with the given key.
-    /// </summary>
-    /// <param name="key">The key to check for.</param>
-    /// <returns>Whether or not the key exists. </returns>
-    public bool ContainsKey(IKeyable key)
-    {
-        if (key is Number {IsInteger: true} numberKey)
-            return ContainsKey(numberKey.ToInt32());
-        return ContainsKey(key.ToString());
-    } 
-    protected bool ContainsKey(string key) => _values.ContainsKey(key);
-    protected bool ContainsKey(int key) => _sortedValues.ContainsKey(key);
-
-    /// <summary>
-    /// Inserts a value into the table.
+    /// Sets a value into the table.
     /// </summary>
     /// <param name="key">The key to the value.</param>
     /// <param name="value">The value to insert.</param>
     /// <returns>The value that was inserted.</returns>
-    /// <exception cref="Exception">The Key already exists.</exception>
-    public RefValue Insert(IKeyable key, RefValue value)
+    public RefValue SetValue(IValue key, IValue value)
     {
-        if (ContainsKey(key))
-            throw new Exception("Key already exists");
-			
+        var val = GetValue(key);
+        if (val != null)
+        {
+            val.Set(value);
+            return val;
+        }
+
+        return SetNewValue(key, value);
+    }
+    
+    //Should not be called if it already exists
+    protected RefValue SetNewValue(IValue key, IValue value)
+    {
         if (key is Number {IsInteger: true} numberKey)
         {
-            return Insert(numberKey.ToInt32(), value);
+            var n = numberKey.ToInteger();
+            if (n >= 0 && n <= int.MaxValue)
+            {
+                return SetNewValue((int) n, value);
+            }
         }
-			
-        _values.Add(key.ToString(), value);
-        return value;
+
+        var newVal = new RefValue(value);
+        _values[key] = newVal;
+        return newVal;
     }
 
-    protected RefValue Insert(int key, RefValue value)
+    //Kan kun blive kaldet hvis man ved key ikke eksistere
+    private RefValue SetNewValue(int key, IValue value)
     {
-        if (key == ArrayLength)
-        {
-            _consecutiveValues.Add(value);
-            MoveConsecutiveValues();
-            return value;
-        }
+        var newVal = new RefValue(value);
+        _sortedValues[key] = newVal;
+        MoveConsecutiveValues();
 
-        _sortedValues.Add(key, value);
-        return value;
+        return newVal;
     }
-		
-    protected RefValue InsertEmpty(IKeyable key) => Insert(key, new RefValue(new SNull()));
-
+    
     /// <summary>
     /// Retrieves a value from the table.
     /// </summary>
     /// <param name="key">The key for the value to retrieve.</param>
     /// <returns>The value.</returns>
-    public virtual RefValue GetValue(IKeyable key)
+    public virtual RefValue GetValue(IValue key)
     {
         if (key is Number {IsInteger: true} numberKey)
         {
-            var number = numberKey.ToInt32();
-            return GetValue(number);
+            var x = numberKey.ToInteger();
+            if (x >= 0 && x <= int.MaxValue)
+                return GetValue((int) x);
         }
-
-        return GetValue(key.ToString());
-    }
-    private RefValue GetValue(int key)
-    {
-        if (key < 0)
-            throw new Exception("Negative index");
-        if (key < ArrayLength)	
-            return _consecutiveValues[key];
-        if(_sortedValues.TryGetValue(key, out var value))
-            return value;
-        throw new Exception("Index out of bounds");
-    }
-    private RefValue GetValue(string key)
-    {
+        
         if (_values.TryGetValue(key, out var value))
             return value;
-        throw new Exception("Key not found");
+
+        return null;
     }
-		
     
-    protected RefValue SetValue(IKeyable key, IValue value)
+    private RefValue GetValue(int key)
     {
-        RefValue refValue = new RefValue(value);
-        _values.Add(key.ToString(), refValue);
-        return refValue;
+        if (key >= _consecutiveValues.Count)
+        {
+            if (_sortedValues.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+
+            return null;
+        }
+
+        return _consecutiveValues[key];
     }
+    
     public IValue InsertFunc(IEnumerable<IValue> args)
     {
         foreach (var arg in args)
@@ -139,9 +131,9 @@ public class BaseTable : BaseValue, ITable
         return new Number(_consecutiveValues.Count);
     }
 
-    public void RemoveValue(IKeyable key)
+    public void RemoveValue(IValue key)
     {
-        _values.Remove(key.ToString());
+        _values.Remove(key);
     }
 
     public override bool ToBool()

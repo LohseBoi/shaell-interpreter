@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Globalization;
 using System.Linq;
 using Antlr4.Runtime;
@@ -7,7 +8,7 @@ using Antlr4.Runtime.Tree;
 
 namespace ShaellLang;
 
-public class ExecutionVisitor : ShaellBaseVisitor<IValue>
+public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 {
     private ScopeManager _scopeManager;
     private ScopeContext _globalScope;
@@ -21,7 +22,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         _args = args;
         _shouldReturn = false;
     }
-    
     public ExecutionVisitor()
     {
         _globalScope = new ScopeContext();
@@ -29,7 +29,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         _scopeManager.PushScope(_globalScope);
         _shouldReturn = false;
     }
-    
+
     public ExecutionVisitor(ScopeContext globalScope, ScopeManager scopeManager)
     {
         _globalScope = globalScope;
@@ -43,7 +43,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         {
             return Visit(context);
         }
-        catch (SemanticError ex)
+        catch (SemanticError)
         {
             throw;
         }
@@ -55,7 +55,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     
     public void SetGlobal(string key, IValue val)
     {
-        _globalScope.SetValue(key, val);
+        _globalScope.NewValue(key, val);
     }
     
     public override IValue VisitProg(ShaellParser.ProgContext context)
@@ -105,10 +105,17 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
     public override IValue VisitIfStmt(ShaellParser.IfStmtContext context)
     {
-        var stmts = context.stmts();
         
-        if (Visit(context.expr()).ToBool())
+        var stmts = context.stmts();
+
+        _scopeManager.PushScope(new ScopeContext());
+        var val = Visit(context.expr()).ToBool();
+        
+        if (val)
             return SafeVisit(stmts[0]);
+        
+        _scopeManager.PopScope();
+        
         if (stmts.Length > 1)
             return SafeVisit(stmts[1]);
 
@@ -117,6 +124,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
     public override IValue VisitForLoop(ShaellParser.ForLoopContext context)
     {
+        _scopeManager.PushScope(new ScopeContext());
         SafeVisit(context.expr()[0]);
         while (SafeVisit(context.expr()[1]).ToBool())
         {
@@ -125,17 +133,20 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
                 return rv;
             SafeVisit(context.expr()[2]);
         }
+        _scopeManager.PopScope();
         return null;
     }
 
     public override IValue VisitWhileLoop(ShaellParser.WhileLoopContext context)
     {
+        _scopeManager.PushScope(new ScopeContext());
         while (SafeVisit(context.expr()).ToBool())
         {
             var rv = SafeVisit(context.stmts());
             if (_shouldReturn)
                 return rv;
         }
+        _scopeManager.PopScope();
         return null;
     }
 
@@ -149,13 +160,13 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitFunctionDefinition(ShaellParser.FunctionDefinitionContext context)
     {
         var formalArgIdentifiers = new List<string>();
-        foreach (var formalArg in context.innerFormalArgList().VARIDENTFIER())
+        foreach (var formalArg in context.innerFormalArgList().IDENTIFIER())
         {
             formalArgIdentifiers.Add(formalArg.GetText());
         }
         
-        _scopeManager.SetValue(
-            context.VARIDENTFIER().GetText(),
+        _scopeManager.NewTopLevelValue(
+            context.IDENTIFIER().GetText(),
             new UserFunc(
                 _globalScope, 
                 context.stmts(), 
@@ -170,7 +181,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitAnonFunctionDefinition(ShaellParser.AnonFunctionDefinitionContext context)
     {
         var formalArgIdentifiers = new List<string>();
-        foreach (var formalArg in context.innerFormalArgList().VARIDENTFIER())
+        foreach (var formalArg in context.innerFormalArgList().IDENTIFIER())
         {
             formalArgIdentifiers.Add(formalArg.GetText());
         }
@@ -210,7 +221,37 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
         return refLhs.Get();
     }
+    
+    #region STRING_INTERPOLATION
+    
+    public override IValue VisitInterpolation(ShaellParser.InterpolationContext context)
+    {
+        var expr = SafeVisit(context.expr());
+        return expr.ToSString();
+    }
+    
+    public override IValue VisitStringLiteralExpr(ShaellParser.StringLiteralExprContext context)
+    {
+        StringBuilder sb = new StringBuilder();
 
+        foreach (var content in context.strcontent())
+        {
+            sb.Append(SafeVisit(content).ToSString().Val);
+        }
+
+        return new SString(sb.ToString());
+    }
+
+    public override IValue VisitStringLiteral(ShaellParser.StringLiteralContext context)
+    {
+        string str = context.TEXT().GetText();  
+        if (str.Contains("\\n"))
+            str = str.Replace("\\n","\n");
+        
+        return new SString(str);
+    }
+    #endregion
+    
     #region ARITHMETIC_EXPRESSIONS
     public override IValue VisitAddExpr(ShaellParser.AddExprContext context)
     {
@@ -493,13 +534,16 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     
     #endregion
 
-    public override IValue VisitVarIdentifier(ShaellParser.VarIdentifierContext context)
+    public override IValue VisitLetExpr(ShaellParser.LetExprContext context)
     {
-        var val = _scopeManager.GetValue(context.VARIDENTFIER().GetText());
+        return _scopeManager.NewTopLevelValue(context.IDENTIFIER().GetText(), new SNull());
+    }
+    
+    public override IValue VisitIdentifierExpr(ShaellParser.IdentifierExprContext context)
+    {
+        var val = _scopeManager.GetValue(context.IDENTIFIER().GetText());
         if (val == null)
-        {
-            return _scopeManager.SetValue(context.VARIDENTFIER().GetText(), new SNull());
-        }
+            return new SFile(context.IDENTIFIER().GetText());
         return val;
     }
 
@@ -548,12 +592,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return rhs;
     }
 
-    public override IValue VisitStringLiteralExpr(ShaellParser.StringLiteralExprContext context)
-    {
-        return new SString(context.STRINGLITERAL().GetText()[1..^1]);
-    }
-    
-    
     //Visit PosExpr and return the value with toNumber
     public override IValue VisitPosExpr(ShaellParser.PosExprContext context)
     {
@@ -583,7 +621,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
     public override IValue VisitIdentifierIndexExpr(ShaellParser.IdentifierIndexExprContext context)
     {
         var lhs = SafeVisit(context.expr());
-        var rhs = context.identifier().GetText(); //TODO: Views numbers as empty strings
+        var rhs = context.IDENTIFIER().GetText(); //TODO: Views numbers as empty strings
         return lhs.ToTable().GetValue(new SString(rhs));
     }
     
@@ -603,12 +641,9 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         {
             rhs = refValue.Get();
         }
-
-        if (rhs is IKeyable rhsKeyable)
-        {
-            return lhs.ToTable().GetValue(rhsKeyable);
-        }
         
+        return lhs.ToTable().GetValue(rhs.Unpack());
+
         throw new Exception("Cannot index with a non-keyable value");
     }
     
@@ -620,7 +655,7 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         for (int i = 0; i < context.expr().Length; i++)
         {
             IValue key = SafeVisit(context.objfields()[i]);
-            RefValue value = @out.GetValue(key as IKeyable);
+            RefValue value = @out.GetValue(key.Unpack());
             value.Set(SafeVisit(context.expr()[i]));
         }
 
@@ -629,24 +664,27 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
     public override IValue VisitProgramArgs(ShaellParser.ProgramArgsContext context)
     {
-        var lastUserVar = context.innerFormalArgList().VARIDENTFIER().Last();
-
-        foreach (var userVar in context.innerFormalArgList().VARIDENTFIER())
+        var formalArgs = context.innerFormalArgList().IDENTIFIER();
+        for (int i = 0; i < formalArgs.Length; i++)
         {
-            if (userVar.Equals(lastUserVar) && _args.Length != 1)
+            if (i < _args.Length)
             {
-                var table = new UserTable();
-                for (int i = 0; i < _args.Length; i++)
-                {
-                    table.Insert(new Number(i), new RefValue(new SString(_args[i])));
-                    _scopeManager.SetValue(userVar.GetText(), table);
-                }
-                return null;
+                _scopeManager.NewTopLevelValue(formalArgs[i].GetText(), new SString(_args[i]));
             }
-
-            _scopeManager.SetValue(userVar.GetText(), new SString(_args[0]));
-            _args = _args.Skip(1).ToArray();
+            else
+            {
+                _scopeManager.NewTopLevelValue(formalArgs[i].GetText(), new SNull());
+            }
         }
+
+        var table = new UserTable();
+        for (int i = 0; i < _args.Length; i++)
+        {
+            table.SetValue(new Number(i), new RefValue(new SString(_args[i])));
+
+        }
+        _scopeManager.NewTopLevelValue("$argv", table);
+
         return null;
     }
 
@@ -654,9 +692,6 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
 
     public override IValue VisitFieldIdentifier(ShaellParser.FieldIdentifierContext context) => new SString(context.GetText());
     public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(SafeVisit(context.expr()).ToSString().Val);
-    public override IValue VisitFileIdentifier(ShaellParser.FileIdentifierContext context) => new SFile(context.GetText());
-    
-    
     public override IValue VisitNullExpr(ShaellParser.NullExprContext context) => new SNull();
     
     public override IValue VisitParenthesis(ShaellParser.ParenthesisContext context) => 
@@ -672,6 +707,8 @@ public class ExecutionVisitor : ShaellBaseVisitor<IValue>
         return new SBool(lhs && rhs);
 
     }
+    
+    
     
     public override IValue VisitBnotExpr(ShaellParser.BnotExprContext context) => 
         throw new NotImplementedException();

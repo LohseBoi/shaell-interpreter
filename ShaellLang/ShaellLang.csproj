@@ -15,14 +15,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Antlr4 Include="Shaell.g4">
+    <Antlr4 Include="ShaellLexer.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <Visitor>True</Visitor>
+    </Antlr4>
+    <Antlr4 Include="ShaellParser.g4">
       <Generator>MSBuild:Compile</Generator>
       <Visitor>True</Visitor>
     </Antlr4>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Shaell.g4" />
+    <Content Include="ShaellLexer.g4" />
+    <Content Include="ShaellParser.g4" />
   </ItemGroup>
 
 </Project>
