@@ -50,6 +50,7 @@ expr: DQUOTE strcontent* END_STRING # StringLiteralExpr
     |<assoc=right> expr MODEQ expr # ModEqExpr
     |<assoc=right> expr POWEQ expr # PowEqExpr
     |anonFunctionDefinition # AnonFnDefinition
+    |LPAREN innerFormalArgList RPAREN LAMBDA (expr | DO stmts END) # InlineFnDefinition
 	;
 strcontent:
     NEWLINE # NewLine

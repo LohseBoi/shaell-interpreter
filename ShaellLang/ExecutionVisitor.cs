@@ -192,6 +192,32 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
             formalArgIdentifiers
         );
     }
+    public override IValue VisitInlineFnDefinition(ShaellParser.InlineFnDefinitionContext context)
+    {
+        var formalArgIdentifiers = new List<string>();
+        foreach (var formalArg in context.innerFormalArgList().IDENTIFIER())
+        {
+            formalArgIdentifiers.Add(formalArg.GetText());
+        }
+
+        ShaellParser.StmtsContext stmts = context.stmts();
+        if (context.DO() == null)
+        {
+            ShaellParser.StmtContext k =
+                new ShaellParser.StmtContext(
+                    new ShaellParser.ReturnStatementContext(context.expr(), 281), 47);
+            stmts = new ShaellParser.StmtsContext(context, context.invokingState);
+            stmts.AddChild(k);
+            Console.WriteLine(stmts.GetText());
+            Console.WriteLine("EXP");
+        }
+        return new UserFunc(
+            _globalScope,
+            stmts,
+            _scopeManager.CopyScopes(),
+            formalArgIdentifiers
+        );
+    }
 
     public override IValue VisitExpr(ShaellParser.ExprContext context)
     {

@@ -80,6 +80,7 @@ SQUOTE: '\'';
 COMMENT : '#' ~('\n')* (('\r'? '\n') | EOF) -> skip;
 MULTILINECOMMENT : '/*'(.)*? (MULTILINECOMMENT | .)*? '*/' -> skip;
 WHITESPACE: (' ' | '\t' | '\r' | '\n')+ -> skip;
+LAMBDA: '=>';
 
 mode STRING_MODE;
 INTERPOLATION: '${' -> pushMode(DEFAULT_MODE);
