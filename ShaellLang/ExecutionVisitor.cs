@@ -97,7 +97,6 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
                 var jo = proc.Execute().ToJobObject();
                 return jo;
             }
-
             return child;
         }
         throw new Exception("No no no");
@@ -109,7 +108,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var stmts = context.stmts();
 
         _scopeManager.PushScope(new ScopeContext());
-        var val = Visit(context.expr()).ToBool();
+        var val = SafeVisit(context.expr()).ToBool();
         
         if (val)
             return SafeVisit(stmts[0]);
@@ -223,12 +222,9 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     }
     
     #region STRING_INTERPOLATION
-    
-    public override IValue VisitInterpolation(ShaellParser.InterpolationContext context)
-    {
-        var expr = SafeVisit(context.expr());
-        return expr.ToSString();
-    }
+
+    public override IValue VisitInterpolation(ShaellParser.InterpolationContext context) =>
+        SafeVisit(context.expr()).ToSString();
     
     public override IValue VisitStringLiteralExpr(ShaellParser.StringLiteralExprContext context)
     {
@@ -421,18 +417,14 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
 
         if (lhs is not RefValue)
-        {
             throw new Exception("Tried to assign to non ref");
-        }
     
         var refLhs = lhs as RefValue;
         
         var rhs = SafeVisit(context.expr(1));
         
         if (rhs is RefValue)
-        {
             rhs = (rhs as RefValue).Get();
-        }
         
         var rhsResult = lhs.ToNumber() % rhs.ToNumber();
         
@@ -446,18 +438,14 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
 
         if (lhs is not RefValue)
-        {
             throw new Exception("Tried to assign to non ref");
-        }
     
         var refLhs = lhs as RefValue;
         
         var rhs = SafeVisit(context.expr(1));
         
         if (rhs is RefValue)
-        {
             rhs = (rhs as RefValue).Get();
-        }
         
         var rhsResult = Number.Power(lhs.ToNumber(), rhs.ToNumber());
         
@@ -507,13 +495,9 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
         var rhs = SafeVisit(context.expr(1));
         if (lhs is RefValue lhsRef)
-        {
             lhs = lhsRef.Unpack();
-        }  
         if (rhs is RefValue rhsRef)
-        {
             rhs = rhsRef.Unpack();
-        }
         return new SBool(lhs.IsEqual(rhs));
     }
 
@@ -534,10 +518,8 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     
     #endregion
 
-    public override IValue VisitLetExpr(ShaellParser.LetExprContext context)
-    {
-        return _scopeManager.NewTopLevelValue(context.IDENTIFIER().GetText(), new SNull());
-    }
+    public override IValue VisitLetExpr(ShaellParser.LetExprContext context) =>
+        _scopeManager.NewTopLevelValue(context.IDENTIFIER().GetText(), new SNull());
     
     public override IValue VisitIdentifierExpr(ShaellParser.IdentifierExprContext context)
     {
@@ -638,13 +620,9 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var rhs = SafeVisit(context.expr(1));
 
         if (rhs is RefValue refValue)
-        {
             rhs = refValue.Get();
-        }
         
         return lhs.ToTable().GetValue(rhs.Unpack());
-
-        throw new Exception("Cannot index with a non-keyable value");
     }
     
     
@@ -668,21 +646,14 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         for (int i = 0; i < formalArgs.Length; i++)
         {
             if (i < _args.Length)
-            {
                 _scopeManager.NewTopLevelValue(formalArgs[i].GetText(), new SString(_args[i]));
-            }
             else
-            {
                 _scopeManager.NewTopLevelValue(formalArgs[i].GetText(), new SNull());
-            }
         }
 
         var table = new UserTable();
         for (int i = 0; i < _args.Length; i++)
-        {
             table.SetValue(new Number(i), new RefValue(new SString(_args[i])));
-
-        }
         _scopeManager.NewTopLevelValue("$argv", table);
 
         return null;
@@ -705,10 +676,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         
         var rhs = SafeVisit(context.expr(1)).ToBool();
         return new SBool(lhs && rhs);
-
     }
-    
-    
     
     public override IValue VisitBnotExpr(ShaellParser.BnotExprContext context) => 
         throw new NotImplementedException();
