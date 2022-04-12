@@ -91,14 +91,13 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     {
         if (context.children.Count == 1)
         {
-            var child = Visit(context.children[0]);
-            if (child is SProcess proc)
+            var val = SafeVisit(context.children[0] as ParserRuleContext);
+            if (val is SProcess proc)
             {
-                var jo = proc.Execute().ToJobObject();
-                return jo;
+                proc.Run();
             }
 
-            return child;
+            return val;
         }
         throw new Exception("No no no");
     }
@@ -573,12 +572,6 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
             args.Add(val);
         }
 
-        if (lhs is SProcess proc)
-        {
-            proc.AddArguments(args);
-            return proc;
-        }
-
         return lhs.Call(args);
     }
 
@@ -587,8 +580,10 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0)).ToSProcess();
         var rhs = SafeVisit(context.expr(1)).ToSProcess();
 
-        rhs.LeftProcess = lhs;
+        lhs.Out.Pipe(rhs.In);
         
+        lhs.Run();
+
         return rhs;
     }
 
