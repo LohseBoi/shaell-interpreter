@@ -52,6 +52,10 @@ namespace ShaellLang
                 {
                     Console.WriteLine(e.Message);
                 }
+                catch (ShaellException e)
+                {
+                    Console.WriteLine($"Uncaught exception: {e.ExceptionValue.ToString()}");
+                }
                 // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
             } while (interactivemode);
 

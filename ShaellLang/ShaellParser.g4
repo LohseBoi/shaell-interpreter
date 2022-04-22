@@ -6,7 +6,7 @@ options {
 
 prog: stmts | programArgs stmts;
 stmts: stmt*;
-stmt: ifStmt | forLoop | whileLoop | returnStatement | functionDefinition | foreach | foreachKeyValue | expr;
+stmt: ifStmt | forLoop | whileLoop | returnStatement | functionDefinition | foreach | foreachKeyValue | throwStatement | expr;
 boolean: 
     TRUE # TrueBoolean 
     | FALSE # FalseBoolean
@@ -16,6 +16,7 @@ expr: DQUOTE strcontent* END_STRING # StringLiteralExpr
     | NUMBER # NumberExpr
     | NULL # NullExpr
 	| boolean # BooleanExpr
+	| TRY stmts END #TryExpr
 	| IDENTIFIER # IdentifierExpr
 	| LPAREN expr RPAREN # Parenthesis
 	| LCURL (objfields ASSIGN expr (COMMA objfields ASSIGN expr)*)? RCURL #ObjectLiteral
@@ -71,3 +72,5 @@ whileLoop: WHILE expr DO stmts END;
 functionDefinition: FUNCTION IDENTIFIER LPAREN innerFormalArgList RPAREN stmts END;
 anonFunctionDefinition: FUNCTION LPAREN innerFormalArgList RPAREN stmts END;
 returnStatement: RETURN expr;
+throwStatement: THROW expr;
+

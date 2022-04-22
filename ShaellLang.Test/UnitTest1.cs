@@ -45,5 +45,12 @@ public class UnitTest1
         // Assert
         Assert.False(testFailed);
     }
+
+    [Fact]
+    public void TestTryThrow()
+    {
+        bool testFailed = shaellLang.Run("../../../TryThrowTest.æ", new string[]{"TryThrowTest.æ", ""});
+        Assert.False(testFailed);
+    }
     
 }

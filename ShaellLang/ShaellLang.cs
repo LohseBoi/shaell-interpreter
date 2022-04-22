@@ -42,7 +42,6 @@ namespace ShaellLang
 					Console.WriteLine("Debug break");
 					return new SNull();
 				}, 0));
-
 				executer.Visit(progContext);
 			}
 			catch (SyntaxErrorException e)

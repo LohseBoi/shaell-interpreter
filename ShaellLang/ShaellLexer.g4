@@ -73,6 +73,8 @@ LSHIFTEQ: '<<=';
 FALSE: 'false';
 TRUE: 'true';
 NULL: 'null';
+THROW: 'throw';
+TRY: 'try';
 DQUOTE: '"' {this.IncreaseDepth();} -> pushMode(STRING_MODE);
 IDENTIFIER: [a-zA-Z_.$][a-zA-Z0-9_.$]*;
 NUMBER: [0-9]+('.'[0-9]+)?;

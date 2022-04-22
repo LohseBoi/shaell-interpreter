@@ -43,6 +43,10 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         {
             return Visit(context);
         }
+        catch (ShaellException)
+        {
+            throw;
+        }
         catch (SemanticError)
         {
             throw;
@@ -66,13 +70,14 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         return null;
     }
 
-    private IValue VisitStmts(ShaellParser.StmtsContext context, bool scoper)
+    private IValue VisitStmts(ShaellParser.StmtsContext context, bool scoper, bool implicitReturn = false)
     {
         if (scoper)
             _scopeManager.PushScope(new ScopeContext());
+        IValue rv = null;
         foreach (var stmt in context.stmt())
         {
-            IValue rv = SafeVisit(stmt);
+            rv = SafeVisit(stmt);
             if (_shouldReturn)
             {
                 if (_scopeManager.PeekScope() == _globalScope)
@@ -83,6 +88,8 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         }
         if (scoper)
             _scopeManager.PopScope();
+        if (implicitReturn)
+            return rv;
         return null;
     }
     public override IValue VisitStmts(ShaellParser.StmtsContext context) => VisitStmts(context, true);
@@ -747,6 +754,38 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         return new SBool(lhs && rhs);
 
     }
+    
+    public override IValue VisitTryExpr(ShaellParser.TryExprContext context)
+    {
+        _scopeManager.PushScope(new ScopeContext());
+        var rv = new UserTable();
+
+        try
+        {
+            var thing = VisitStmts(context.stmts(), true, true);
+            rv.SetValue(new SString("value"), thing);
+            rv.SetValue(new SString("status"), new Number(0));
+        }
+        catch (ShaellException e)
+        {
+            rv.SetValue(new SString("error"), e.ExceptionValue);
+            rv.SetValue(new SString("status"), new Number(1));
+        }
+        catch (Exception e)
+        {
+            rv.SetValue(new SString("error"), new SString(e.ToString()));
+            rv.SetValue(new SString("status"), new Number(1));
+        }
+
+        _scopeManager.PopScope();
+        return rv;
+    }
+
+    public override IValue VisitThrowStatement(ShaellParser.ThrowStatementContext context)
+    {
+        throw new ShaellException(SafeVisit(context.expr()));
+    }
+    
     
     
     
