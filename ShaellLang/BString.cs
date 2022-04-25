@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ShaellLang;
 
-public class BString : BaseValue, ITable, IIterable
+public class BString : BaseValue
 {
     private string _val;
     private byte[] _buffer;
@@ -58,52 +58,14 @@ public class BString : BaseValue, ITable, IIterable
 
     public override SString ToSString() => new(_val);
 
-    public override ITable ToTable() => this;
+    public override ITable ToTable() => _table;
     public override bool IsEqual(IValue other)
     {
         if (other is BString unpackedBString)
-        {
             return unpackedBString._buffer.SequenceEqual(_buffer);
-        }
-
         return false;
-    }
-
-    public RefValue GetValue(IValue key)
-    {
-        if (key is Number numberKey)
-        {
-            if (numberKey.IsInteger)
-            {
-                long val = numberKey.ToInteger();
-                if (val >= 0 && val < _buffer.Length)
-                {
-                    //val is less than _val.Length which is an int, therefore val can safely be casted to int
-                    return new RefValue(new Number(_buffer[val]));
-                }
-            }
-        }
-        return _table.GetValue(key);
-    }
-
-    public void RemoveValue(IValue key)
-    {
-        return;
     }
 
     public string Val => _val;
     public byte[] Buffer => _buffer;
-    public string KeyValue => _val;
-    public string UniquePrefix => "S";
-
-    public IEnumerable<IValue> GetKeys()
-    {
-        var rv = new List<Number>();
-        for (int i = 0; i < _val.Length; i++)
-        {
-            var n = new Number(i);
-            rv.Add(n);
-        }
-        return rv;        
-    }
 }

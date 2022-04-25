@@ -7,45 +7,46 @@ namespace ShaellLang;
 
 public class NumberTable : NativeTable
 {
-    private static NumberTable instance = new NumberTable();
-    public Number Number;
+    private static readonly NumberTable _instance = new();
+    private static Number _number;
     
     private NumberTable()
     {
-        this.SetValue("sqrt", new NativeFunc(sqrtCallHandler, 0));
-        this.SetValue("floor", new NativeFunc(floorCallHandler, 0));
-        this.SetValue("ceil", new NativeFunc(ceilCallHandler,0));
-        this.SetValue("log2", new NativeFunc(log2CallHandler,0));
-        this.SetValue("log", new NativeFunc(logCallHandler,0));
+        SetValue("sqrt", new NativeFunc(SqrtCallHandler, 0));
+        SetValue("floor", new NativeFunc(FloorCallHandler, 0));
+        SetValue("ceil", new NativeFunc(CeilCallHandler,0));
+        SetValue("log2", new NativeFunc(Log2CallHandler,0));
+        SetValue("log", new NativeFunc(LogCallHandler,0));
     }
 
-    public static NumberTable getInstance()
+    public static NumberTable GetInstance(Number caller)
     {
-        return instance;
+        _number = caller;
+        return _instance;
     }
     
-    private IValue sqrtCallHandler(IEnumerable<IValue> args)
+    private static IValue SqrtCallHandler(IEnumerable<IValue> args)
     {
-        return new Number(Math.Sqrt(Number.ToFloating()));
+        return new Number(Math.Sqrt(_number.ToFloating()));
     }
 
-    private IValue floorCallHandler(IEnumerable<IValue> args)
+    private static IValue FloorCallHandler(IEnumerable<IValue> args)
     {
-        return new Number(Math.Floor(Number.ToFloating()));
+        return new Number(Math.Floor(_number.ToFloating()));
     }
 
-    private IValue ceilCallHandler(IEnumerable<IValue> args)
+    private static IValue CeilCallHandler(IEnumerable<IValue> args)
     {
-        return new Number(Math.Ceiling(Number.ToFloating()));
+        return new Number(Math.Ceiling(_number.ToFloating()));
     }
 
-    private IValue log2CallHandler(IEnumerable<IValue> args)
+    private static IValue Log2CallHandler(IEnumerable<IValue> args)
     {
-        return new Number(Math.Log2(Number.ToFloating()));
+        return new Number(Math.Log2(_number.ToFloating()));
     }
 
-    private IValue logCallHandler(IEnumerable<IValue> args)
+    private static IValue LogCallHandler(IEnumerable<IValue> args)
     {
-        return new Number(Math.Log(Number.ToFloating(), args.ToArray()[0].ToNumber().ToFloating()));
+        return new Number(Math.Log(_number.ToFloating(), args.ToArray()[0].ToNumber().ToFloating()));
     }
 }

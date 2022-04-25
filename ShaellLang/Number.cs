@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace ShaellLang
 {
@@ -8,8 +9,11 @@ namespace ShaellLang
     {
         private dynamic _numberRepresentation;
 
-        private static NumberTable _numberTable = NumberTable.getInstance();
-        
+        private NumberTable _numberTable
+        {
+            get => NumberTable.GetInstance(this);
+        }
+
         public Number(long value)
             : base("integernumber")
         {
@@ -48,33 +52,16 @@ namespace ShaellLang
             }
         }
 
-        public override ITable ToTable()
-        {
-            _numberTable.Number = this; //TODO: this is a hack, fix it
-            return _numberTable;
-        }
+        public override ITable ToTable() => _numberTable;
 
-        public override int GetHashCode()
-        {
-            return ("N" + ToSString().Val).GetHashCode();
-        }
+        public override int GetHashCode() => ("N" + ToSString().Val).GetHashCode();
 
-        public override bool Equals(object? obj)
-        {
-            if (obj is Number number)
-            {
-                return IsEqual(number);
-            }
-
-            return false;
-        }
-
+        public override bool Equals(object? obj) => obj is Number number && IsEqual(number);
+        
         public static Number operator +(Number a, Number b)
         {
             if (a.IsFloating || b.IsFloating)
-            {
                 return new Number(a.ToFloating() + b.ToFloating());
-            }
             else
             {
                 try
@@ -91,9 +78,7 @@ namespace ShaellLang
         public static Number operator -(Number a, Number b)
         {
             if (a.IsFloating || b.IsFloating)
-            {
                 return new Number(a.ToFloating() - b.ToFloating());
-            }
             else
             {
                 try
@@ -110,9 +95,7 @@ namespace ShaellLang
         public static Number operator *(Number a, Number b)
         {
             if (a.IsFloating || b.IsFloating)
-            {
                 return new Number(a.ToFloating() * b.ToFloating());
-            }
             else
             {
                 try
@@ -129,36 +112,25 @@ namespace ShaellLang
         public static Number operator /(Number a, Number b)
         {
             if (a.IsFloating || b.IsFloating || a.ToInteger() % b.ToInteger() != new Number(0).ToInteger())
-            {
                 return new Number(a.ToFloating() / b.ToFloating());
-            }
             else
-            {
                 return new Number(a.ToInteger() / b.ToInteger());
-            }
         }
         
         public static Number operator %(Number a, Number b)
         {
             if (a.IsFloating || b.IsFloating)
-            {
                 return new Number(a.ToFloating() % b.ToFloating());
-            }
             return new Number(a.ToInteger() % b.ToInteger());
         }
 
-        public static Number Power(Number a, Number b)
-        {
-            return new Number(Math.Pow(a.ToFloating(), b.ToFloating()));
-        }
+        public static Number Power(Number a, Number b) => new Number(Math.Pow(a.ToFloating(), b.ToFloating()));
         
         //overide unary - and return the negative of the number
         public static Number operator -(Number a)
         {
             if (a.IsFloating)
-            {
                 return new Number(-a.ToFloating());
-            }
             return new Number(-a.ToInteger());
         }
         
@@ -207,16 +179,8 @@ namespace ShaellLang
                 return a.ToInteger() >= b.ToFloating();
             return a.ToInteger() >= b.ToInteger();
         }
-        
-        public override bool IsEqual(IValue other)
-        {
-            if (other is Number otherNumber)
-            {
-                return this == otherNumber;
-            }
 
-            return false;
-        }
+        public override bool IsEqual(IValue other) => other is Number otherNumber && this == otherNumber;
         
         public static bool operator ==(Number a, Number b)
         {
@@ -240,9 +204,6 @@ namespace ShaellLang
             return a.ToInteger() != b.ToInteger();
         }
 
-        public static bool operator !(Number a)
-        {
-            return !a.ToBool();
-        }
+        public static bool operator !(Number a) => !a.ToBool();
     }
 }
