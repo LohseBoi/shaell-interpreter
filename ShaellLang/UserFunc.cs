@@ -39,9 +39,8 @@ public class UserFunc : BaseValue, IFunction
         var executioner = new ExecutionVisitor(_globalScope, activeScopeManager);
 
         return executioner.VisitFunctionBody(_funcBody);
-        var jo = new JobObject(executioner.VisitFunctionBody(_funcBody));
-
-        return jo;
+        //var jo = new JobObject(executioner.VisitFunctionBody(_funcBody));
+        //return jo;
     }
 
     public uint ArgumentCount => 0;
