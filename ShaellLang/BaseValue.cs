@@ -22,10 +22,7 @@ public abstract class BaseValue : IValue
     public virtual JobObject ToJobObject() => throw new Exception($"Cannot convert {_typeName} to job object");
     public virtual SProcess ToSProcess() => throw new Exception($"Cannot convert {_typeName} to process");
 
-    public override string ToString()
-    {
-        return ToSString().Val;
-    }
+    public override string ToString() => ToSString().Val;
 
     public abstract bool IsEqual(IValue other);
     
