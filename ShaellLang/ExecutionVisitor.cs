@@ -84,7 +84,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
             return rv;
         return null;
     }
-    public override IValue VisitStmts(ShaellParser.StmtsContext context) => VisitStmts(context, false);
+    public override IValue VisitStmts(ShaellParser.StmtsContext context) => VisitStmts(context, true);
 
     public override IValue VisitStmt(ShaellParser.StmtContext context)
     {
