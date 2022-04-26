@@ -16,7 +16,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     private string[] _args;
     public ExecutionVisitor(string[] args)
     {
-        _globalScope = new ScopeContext();
+        _globalScope = new ScopeContext(true);
         _scopeManager = new ScopeManager();
         _scopeManager.PushScope(_globalScope);
         _args = args;
@@ -25,7 +25,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 
     public ExecutionVisitor()
     {
-        _globalScope = new ScopeContext();
+        _globalScope = new ScopeContext(true);
         _scopeManager = new ScopeManager();
         _scopeManager.PushScope(_globalScope);
         _shouldReturn = false;
@@ -63,8 +63,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     {
         if (context.children.Count == 2)
             VisitProgramArgs(context.programArgs());
-        VisitStmts(context.stmts(), false);
-        return null;
+        return VisitStmts(context.stmts(), false);
     }
 
     private IValue VisitStmts(ShaellParser.StmtsContext context, bool scoper)
@@ -74,13 +73,8 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         foreach (var stmt in context.stmt())
         {
             IValue rv = SafeVisit(stmt);
-            if (_shouldReturn)
-            {
-                if (_scopeManager.PeekScope() == _globalScope)
-                    Environment.Exit((int)rv.ToNumber().ToInteger()); //TODO: return statement w/o expr equates to 0?
-                _shouldReturn = false;
+            if (_shouldReturn) //TODO: return statement w/o expr equates to 0?
                 return rv;
-            }
         }
         if (scoper)
             _scopeManager.PopScope();
@@ -95,9 +89,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         {
             var val = SafeVisit(context.children[0] as ParserRuleContext);
             if (val is SProcess proc)
-            {
                 proc.Run();
-            }
 
             return val;
         }
@@ -109,14 +101,14 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         
         var stmts = context.stmts();
 
-        _scopeManager.PushScope(new ScopeContext());
+        //_scopeManager.PushScope(new ScopeContext());
         var val = SafeVisit(context.expr()).ToBool();
-        
+
         if (val)
             return SafeVisit(stmts[0]);
         
-        _scopeManager.PopScope();
-        
+        //_scopeManager.PopScope();
+
         if (stmts.Length > 1)
             return SafeVisit(stmts[1]);
 
@@ -238,8 +230,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     {
         if (context.LAMBDA() == null)
             return SafeVisit(context.stmts());
-        else
-            return SafeVisit(context.expr());
+        return SafeVisit(context.expr());
     }
     public override IValue VisitExpr(ShaellParser.ExprContext context)
     {

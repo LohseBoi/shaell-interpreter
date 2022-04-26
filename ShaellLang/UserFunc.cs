@@ -29,7 +29,7 @@ public class UserFunc : BaseValue, IFunction
     public IValue Call(IEnumerable<IValue> args)
     {
         ScopeManager activeScopeManager = _capturedScope.CopyScopes();
-        activeScopeManager.PushScope(new ScopeContext());
+        activeScopeManager.PushScope(new ScopeContext(true));
         var arr = args.ToArray();
         for (var i = 0; i < arr.Length && i < _formalArguments.Count; i++)
         {
@@ -42,14 +42,6 @@ public class UserFunc : BaseValue, IFunction
     }
 
     public uint ArgumentCount => 0;
-
-    public override IFunction ToFunction()
-    {
-        return this;
-    }
-    
-    public override bool IsEqual(IValue other)
-    {
-        return other == this;
-    }
+    public override IFunction ToFunction() => this;
+    public override bool IsEqual(IValue other) => other == this;
 }

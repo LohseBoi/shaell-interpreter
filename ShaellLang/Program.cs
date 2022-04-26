@@ -72,8 +72,9 @@ namespace ShaellLang
             Console.WriteLine(errorListener);
             if (errorListener.HasErrors)
                 return;
-            executer.Visit(progContext);
-            
+            var rv = executer.Visit(progContext);
+            if (rv != null) 
+                Environment.Exit((int)rv.ToNumber().ToInteger());
         }
 
         /// <summary>

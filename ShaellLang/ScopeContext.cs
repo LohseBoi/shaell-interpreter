@@ -6,10 +6,15 @@ namespace ShaellLang;
 public class ScopeContext
 {
     private Dictionary<string, RefValue> _values;
-
+    public bool Returner { get; } = false;
     public ScopeContext()
     {
         _values = new Dictionary<string, RefValue>();
+    }
+
+    public ScopeContext(bool ret) : this()
+    {
+        Returner = ret;
     }
     
     public RefValue GetValue(string key)

@@ -58,4 +58,5 @@ public class ScopeManager
     }
 
     public ScopeContext PeekScope() => _scopes.Last();
+    public ScopeContext GetNextReturner() => _scopes.FindLast(x => x.Returner);
 }
