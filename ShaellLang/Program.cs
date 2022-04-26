@@ -76,7 +76,9 @@ namespace ShaellLang
             Console.WriteLine(errorListener);
             if (errorListener.HasErrors)
                 return;
-            executer.Visit(progContext);
+            var rv = executer.Visit(progContext);
+            if (rv != null) 
+                Environment.Exit((int)rv.ToNumber().ToInteger());
             
         }
 
@@ -180,7 +182,6 @@ namespace ShaellLang
             // saves command in history (including the timestamp of the commands) if there was any content in the command.
             if (@out.Length > 0)
                 File.AppendAllText($"{home}/.shæll_history", $"{DateTime.Now:MM/dd/yyyy HH.mm.ss}:{@out}\n");
-            Console.WriteLine();
             return @out;
         }
     }

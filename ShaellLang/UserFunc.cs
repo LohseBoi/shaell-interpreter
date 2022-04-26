@@ -6,19 +6,19 @@ namespace ShaellLang;
 
 public class UserFunc : BaseValue, IFunction
 {
-    private ShaellParser.StmtsContext _funcStmts;
+    private ShaellParser.FunctionBodyContext _funcBody;
     private ScopeManager _capturedScope;
     private List<string> _formalArguments;
     private ScopeContext _globalScope;
 
     public UserFunc(
         ScopeContext globalScope, 
-        ShaellParser.StmtsContext funcStmts, 
+        ShaellParser.FunctionBodyContext funcBody, 
         ScopeManager capturedScope, 
         List<string> formalArguments
         ) : base("userfunc")
     {
-        _funcStmts = funcStmts;
+        _funcBody = funcBody;
         _capturedScope = capturedScope;
         _formalArguments = formalArguments;
         _globalScope = new ScopeContext();
@@ -38,20 +38,14 @@ public class UserFunc : BaseValue, IFunction
 
         var executioner = new ExecutionVisitor(_globalScope, activeScopeManager);
 
-        var jo = new JobObject(executioner.VisitStmts(_funcStmts));
-
-        return jo;
+        return executioner.VisitFunctionBody(_funcBody);
+        //var jo = new JobObject(executioner.VisitFunctionBody(_funcBody));
+        //return jo;
     }
 
     public uint ArgumentCount => 0;
 
-    public override IFunction ToFunction()
-    {
-        return this;
-    }
+    public override IFunction ToFunction() => this;
     
-    public override bool IsEqual(IValue other)
-    {
-        return other == this;
-    }
+    public override bool IsEqual(IValue other) => other == this;
 }

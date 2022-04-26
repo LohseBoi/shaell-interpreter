@@ -8,8 +8,11 @@ namespace ShaellLang
     {
         private dynamic _numberRepresentation;
 
-        private static NumberTable _numberTable = NumberTable.getInstance();
-        
+        private NumberTable _numberTable
+        {
+            get => NumberTable.GetInstance(this);
+        }
+
         public Number(long value)
             : base("integernumber")
         {
@@ -29,8 +32,6 @@ namespace ShaellLang
         public long ToInteger() => Convert.ToInt64(_numberRepresentation);
         
         public double ToFloating() => Convert.ToDouble(_numberRepresentation);
-        public string KeyValue => Convert.ToString(_numberRepresentation);
-        public string UniquePrefix => "N";
 
         public override bool ToBool() => true;
 
@@ -39,20 +40,11 @@ namespace ShaellLang
         public override SString ToSString()
         {
             if (IsFloating)
-            {
                 return new SString(ToFloating().ToString(CultureInfo.InvariantCulture));
-            }
-            else
-            {
-                return new SString(ToInteger().ToString());
-            }
+            return new SString(ToInteger().ToString());
         }
 
-        public override ITable ToTable()
-        {
-            _numberTable.Number = this; //TODO: this is a hack, fix it
-            return _numberTable;
-        }
+        public override ITable ToTable() => _numberTable;
 
         public override int GetHashCode()
         {

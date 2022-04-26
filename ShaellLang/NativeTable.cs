@@ -21,11 +21,8 @@ public class NativeTable : ITable
         if (key is SString stringKey)
         {
             if (valueLookup.TryGetValue(stringKey.Val, out IValue val))
-            {
                 return new RefValue(val);
-            }
         }
-
         return null;
     }
 
