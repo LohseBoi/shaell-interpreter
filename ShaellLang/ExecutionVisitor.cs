@@ -100,16 +100,16 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 
     public override IValue VisitIfStmt(ShaellParser.IfStmtContext context)
     {
-        var stmts = context.stmts();
         _scopeManager.PushScope(new ScopeContext());
+        var stmts = context.stmts();
         var val = SafeVisit(context.expr()).ToBool();
+        IValue rv = null;
         if (val)
-            return SafeVisit(stmts[0]);
-        if (stmts.Length > 1)
-            return SafeVisit(stmts[1]);
+            rv = VisitStmts(stmts[0]);
+        else if (stmts.Length > 1)
+            rv = VisitStmts(stmts[1]);
         _scopeManager.PopScope();
-
-        return null;
+        return rv;
     }
 
     public override IValue VisitForLoop(ShaellParser.ForLoopContext context)
