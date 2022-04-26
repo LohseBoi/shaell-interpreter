@@ -23,6 +23,7 @@ GLOBAL: 'global';
 ASYNC: 'async';
 DEFER: 'defer';
 ARGS: 'args';
+ARGV: '...'IDENTIFIER;
 LET: 'let';
 LPAREN: '(';
 RPAREN: ')';
