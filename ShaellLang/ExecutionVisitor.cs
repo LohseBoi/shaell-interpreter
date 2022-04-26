@@ -12,7 +12,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 {
     private ScopeManager _scopeManager;
     private ScopeContext _globalScope;
-    private bool _shouldReturn;
+    private bool _shouldReturn = false;
     private string[] _args;
     public ExecutionVisitor(string[] args)
     {
@@ -20,7 +20,6 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         _scopeManager = new ScopeManager();
         _scopeManager.PushScope(_globalScope);
         _args = args;
-        _shouldReturn = false;
     }
 
     public ExecutionVisitor()
@@ -28,14 +27,12 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         _globalScope = new ScopeContext();
         _scopeManager = new ScopeManager();
         _scopeManager.PushScope(_globalScope);
-        _shouldReturn = false;
     }
 
     public ExecutionVisitor(ScopeContext globalScope, ScopeManager scopeManager)
     {
         _globalScope = globalScope;
         _scopeManager = scopeManager;
-        _shouldReturn = false;
     }
 
     private IValue SafeVisit(ParserRuleContext context)
