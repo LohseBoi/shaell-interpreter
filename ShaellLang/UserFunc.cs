@@ -29,7 +29,7 @@ public class UserFunc : BaseValue, IFunction
     public IValue Call(IEnumerable<IValue> args)
     {
         ScopeManager activeScopeManager = _capturedScope.CopyScopes();
-        activeScopeManager.PushScope(new ScopeContext(true));
+        activeScopeManager.PushScope(new ScopeContext());
         var arr = args.ToArray();
         for (var i = 0; i < arr.Length && i < _formalArguments.Count; i++)
         {

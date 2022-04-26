@@ -16,7 +16,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     private string[] _args;
     public ExecutionVisitor(string[] args)
     {
-        _globalScope = new ScopeContext(true);
+        _globalScope = new ScopeContext();
         _scopeManager = new ScopeManager();
         _scopeManager.PushScope(_globalScope);
         _args = args;
@@ -25,7 +25,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 
     public ExecutionVisitor()
     {
-        _globalScope = new ScopeContext(true);
+        _globalScope = new ScopeContext();
         _scopeManager = new ScopeManager();
         _scopeManager.PushScope(_globalScope);
         _shouldReturn = false;

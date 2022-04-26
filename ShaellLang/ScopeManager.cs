@@ -30,18 +30,13 @@ public class ScopeManager
         {
             var rv = scope.GetValue(key);
             if (rv != null)
-            {
                 return rv;
-            }
         }
 
         return null;
     }
 
-    public RefValue NewTopLevelValue(string key, IValue val)
-    {
-        return _scopes.Last().NewValue(key, val);
-    }
+    public RefValue NewTopLevelValue(string key, IValue val) => _scopes.Last().NewValue(key, val);
 
     public void PushScope(ScopeContext scopeContext)
     {
@@ -51,12 +46,6 @@ public class ScopeManager
     public void PopScope()
     {
         if (_scopes.Count > 0)
-        {
             _scopes.RemoveAt(_scopes.Count - 1);
-        }
-
     }
-
-    public ScopeContext PeekScope() => _scopes.Last();
-    public ScopeContext GetNextReturner() => _scopes.FindLast(x => x.Returner);
 }
