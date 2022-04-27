@@ -43,11 +43,10 @@ public class UnitTest1
     [Fact]
     public void TestForeach()
     {
-        // Act
-        bool testFailed = shaellLang.Run("../../../ForeachTest.æ", new string[]{"ForeachTest.æ", ""});
+        ShaellLang shaellLang = new ShaellLang();
+        shaellLang.LoadStdLib();
         
-        // Assert
-        Assert.False(testFailed);
+        shaellLang.RunFile("../../../ForeachTest.æ");
     }
     
     [Fact]
