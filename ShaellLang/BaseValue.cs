@@ -24,6 +24,8 @@ public abstract class BaseValue : IValue
 
     public override string ToString() => ToSString().Val;
 
+    public virtual SString Serialize() => throw new Exception("Cannot serialize base value");
+
     public abstract bool IsEqual(IValue other);
     
     public string GetTypeName() => _typeName;

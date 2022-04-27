@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ShaellLang;
 
@@ -156,7 +157,8 @@ public class BaseTable : BaseValue, ITable, IIterable
         var rv = new List<IValue>();
         foreach (var key in _values)   
         {
-            rv.Add(key.Key);
+            if (key.Key is not NonEnumerableItem) 
+                rv.Add(key.Key.Unpack());
         }
 
         for(int i = 0; i < _consecutiveValues.Count; i++)
@@ -171,5 +173,19 @@ public class BaseTable : BaseValue, ITable, IIterable
             rv.Add(v);
         }
         return rv;  
+    }
+
+    public override string ToString()
+    {
+        var rv = "{";
+
+        var keys = GetKeys().ToArray();
+
+        foreach (var key in keys)
+        {
+            rv += $"[{key.Serialize()}] = {GetValue(key).Serialize()},";
+        }
+        
+        return rv + "}";
     }
 }

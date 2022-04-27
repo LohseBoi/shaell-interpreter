@@ -52,4 +52,9 @@ public class RefValue : BaseValue
     {
         return _realValue.ToString();
     }
+
+    public override SString Serialize()
+    {
+        return _realValue.Serialize();
+    }
 }

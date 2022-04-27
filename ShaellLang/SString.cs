@@ -132,4 +132,9 @@ public class SString : BaseValue, ITable, IIterable
 
         return false;
     }
+
+    public override SString Serialize()
+    {
+        return new SString($"\"{_val}\"");
+    }
 }

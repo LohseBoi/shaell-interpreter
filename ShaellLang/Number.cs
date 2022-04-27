@@ -236,5 +236,10 @@ namespace ShaellLang
         {
             return !a.ToBool();
         }
+
+        public override SString Serialize()
+        {
+            return ToSString();
+        }
     }
 }

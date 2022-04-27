@@ -21,7 +21,50 @@ public static class TestLib
         userTable
             .GetValue(new SString("describe"))
             .Set(new NativeFunc(DescribeFunc, 2));
+        userTable
+            .GetValue(new SString("tableEqual"))
+            .Set(new NativeFunc(TableEqualFunc, 2));
+        userTable
+            .GetValue(new SString("arrayEquivalent"))
+            .Set(new NativeFunc(ArrayEquivalentFunc, 2));
         return userTable;
+    }
+
+    private static IValue TableEqualFunc(IEnumerable<IValue> args)
+    {
+        var argArr = args.ToArray();
+        if (argArr.Length < 3)
+        {
+            throw new Exception("assert: too few arguments");
+        }
+        
+        if (argArr[0].ToBool() == false)
+        {
+            throw new Exception("assert: " + argArr[2].ToSString().Val);
+        }
+
+        var a = argArr[0].ToTable() as BaseTable;
+        var b = argArr[1].ToTable() as BaseTable;
+        var a_keys = a.GetKeys().ToArray();
+        var b_keys = b.GetKeys().ToArray();
+        if (a_keys.Length != b_keys.Length)
+        {
+            Console.WriteLine($"Expected: {a} got {b}");
+            Console.WriteLine($"Failed on length check");
+            
+            throw new Exception("assert: " + argArr[2].ToSString().Val);
+        }
+
+        foreach (var key in a_keys)
+        {
+            if (!b.GetValue(key).Unpack().IsEqual( a.GetValue(key).Unpack()))
+            {
+                Console.WriteLine($"Expected: {a} got {b}");
+                Console.WriteLine($"Failed on key {key.Serialize()} with value left: {a.GetValue(key)}, right: {b.GetValue(key)}");
+                throw new Exception("assert: " + argArr[2].ToSString().Val);
+            }
+        }
+        return new SNull();
     }
 
     private static IValue AssertFunc(IEnumerable<IValue> args)
@@ -90,5 +133,46 @@ public static class TestLib
         
         return new SNull();
     }
-    
+
+    private static IValue ArrayEquivalentFunc(IEnumerable<IValue> args)
+    {
+        var argArr = args.ToArray();
+        if (argArr.Length < 3)
+        {
+            throw new Exception("array equivalent: too few arguments");
+        }
+
+        var a = argArr[0].ToTable() as BaseTable;
+        var b = argArr[1].ToTable() as BaseTable;
+        var aKeys = a.GetKeys().ToArray();
+        var bKeys = b.GetKeys().ToArray();
+        if (aKeys.Length != bKeys.Length)
+        {
+            Console.WriteLine($"Expected: {a} got {b}");
+            Console.WriteLine($"Failed on length check");
+            throw new Exception("assert: " + argArr[2].ToSString().Val);
+        }
+
+        for (var aIndex = 0; aIndex < a.ArrayLength; aIndex++)
+        {
+            var found = false;
+            var val = a.GetValue(new Number(aIndex));
+            for (var bIndex = 0; bIndex < b.ArrayLength; bIndex++)
+            {
+                if (val.IsEqual(b.GetValue(new Number(bIndex)).Unpack()))
+                {
+                    found = true;
+                }
+            }
+
+            if (!found)
+            {
+                Console.WriteLine($"Expected: {a} got {b}");
+                Console.WriteLine($"Failed on key {aIndex} with value {val.Serialize()}");
+                throw new Exception("assert: " + argArr[2].ToSString().Val);
+            }
+        }
+        
+        return new SNull();
+    }
 }

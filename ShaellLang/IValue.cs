@@ -18,6 +18,8 @@ namespace ShaellLang
 		JobObject ToJobObject();
 
 		SProcess ToSProcess();
+		
+		SString Serialize();
 
 		bool IsEqual(IValue other);
 
