@@ -504,11 +504,8 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     {
         var lhs = SafeVisit(context.expr(0));
         var rhs = SafeVisit(context.expr(1));
-        if (lhs is RefValue lhsRef)
-            lhs = lhsRef.Unpack();
-        if (rhs is RefValue rhsRef)
-            rhs = rhsRef.Unpack();
-        return new SBool(lhs.IsEqual(rhs));
+        
+        return new SBool(lhs.IsEqual(rhs.Unpack()));
     }
 
     public override IValue VisitNEQExpr(ShaellParser.NEQExprContext context)
@@ -516,7 +513,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
         var rhs = SafeVisit(context.expr(1));
 
-        return new SBool(!lhs.Equals(rhs.Unpack()));
+        return new SBool(!lhs.IsEqual(rhs.Unpack()));
     }
 
     public override IValue VisitLnotExpr(ShaellParser.LnotExprContext context)
@@ -696,6 +693,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     public override IValue VisitTryExpr(ShaellParser.TryExprContext context)
     {
         _scopeManager.PushScope(new ScopeContext());
+        var scopeRestorePoint = _scopeManager.CopyScopes();
         var rv = new UserTable();
 
         try
@@ -706,11 +704,13 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         }
         catch (ShaellException e)
         {
+            _scopeManager = scopeRestorePoint;
             rv.SetValue(new SString("error"), e.ExceptionValue);
             rv.SetValue(new SString("status"), new Number(1));
         }
         catch (Exception e)
         {
+            _scopeManager = scopeRestorePoint;
             rv.SetValue(new SString("error"), new SString(e.ToString()));
             rv.SetValue(new SString("status"), new Number(1));
         }

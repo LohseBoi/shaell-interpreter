@@ -42,3 +42,33 @@ A:describe("Nested catchers should only reach the top one", fn()
     A:assert(res:status == 0, "Status should be 0 on success")
     A:assert(res:value == "a", "The return value should be intact")
 end)
+
+A:describe("Scope should be restored correctly", fn()
+    let res = try
+        let a = 1
+        let b = 2
+        #We add some extra scopes to try and break stuff
+        if true then
+            let c = 3
+            let d = 4
+            if true then
+                let e = 5
+                let f = 6
+                throw "some error"
+            end
+        end
+    end 
+    res = try
+        a = "b"
+    end
+    A:assert(res:status != 0, "a should be undeclared therefore throw an error")
+end)
+
+A:describe("Scope values should be modified", fn()
+    let a = 1
+    try
+        a = 2
+        throw "Go out of scope"
+    end
+    A:assert(a == 2, "a should be 2")
+end)
