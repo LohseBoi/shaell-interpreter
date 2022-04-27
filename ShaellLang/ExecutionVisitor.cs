@@ -67,7 +67,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         return VisitStmts(context.stmts(), false);
     }
 
-    private IValue VisitStmts(ShaellParser.StmtsContext context, bool scoper, bool implicitReturn = false)
+    public IValue VisitStmts(ShaellParser.StmtsContext context, bool scoper, bool implicitReturn = false)
     {
         if (scoper)
             _scopeManager.PushScope(new ScopeContext());
@@ -240,7 +240,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 
         var value = lhs as RefValue;
         if (value == null)
-            throw new SyntaxErrorException("Syntax Error: Tried to assign to non ref");
+            throw new SemanticError("Tried to assignt to non ref", context.start, context.stop);
 
         RefValue refLhs = value;
 

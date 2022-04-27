@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -26,15 +27,20 @@ public class StdLib
     public static IValue CdFunc(IEnumerable<IValue> args)
     {
         var argArr = args.ToArray();
-
-        if (Path.IsPathRooted(argArr[0].ToString()))
+        if (argArr.Length < 1)
         {
-            Directory.SetCurrentDirectory(argArr[0].ToString());
+            throw new ShaellException(new SString("Expected 1 argument"));
+        }
+
+        var givenPath = argArr[0].ToString();
+        if (Path.IsPathRooted(givenPath))
+        {
+            Directory.SetCurrentDirectory(givenPath);
         }
         else
         {
             Directory.SetCurrentDirectory(Path.GetFullPath(Path.Join(Environment.CurrentDirectory,
-                argArr[0].ToString())));
+                givenPath)));
         }
 
         return new SNull();
@@ -43,8 +49,29 @@ public class StdLib
     public static IValue ExitFunc(IEnumerable<IValue> args)
     {
         var argArr = args.ToArray();
+        int returnCode = 0;
+        if (argArr.Length < 1)
+        {
+            returnCode = 0;
+        }
+        else
+        {
+            var val = argArr[0].ToNumber();
+            if (!val.IsInteger)
+            {
+                throw new ShaellException(new SString("Expected integer as first argument"));
+            }
 
-        Environment.Exit(Int32.Parse(argArr[0].ToString()));
+            long longVal = val.ToInteger();
+            if (longVal >= int.MaxValue || longVal <= int.MinValue)
+            {
+                throw new ShaellException(new SString($"Expected integer in range of {int.MinValue} to {int.MaxValue} as first argument"));
+            }
+
+            returnCode = (int) longVal;
+        }
+
+        Environment.Exit(returnCode);
         return new SNull();
     }
 }

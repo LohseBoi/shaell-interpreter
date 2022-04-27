@@ -10,4 +10,9 @@ public class ShaellException : Exception
     {
         ExceptionValue = exceptionValue;
     }
+
+    public override string ToString()
+    {
+        return $"Uncaught Shaell Exception:\n{ExceptionValue}";
+    }
 }
