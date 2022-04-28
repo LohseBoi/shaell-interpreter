@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ShaellLang;
 
-public class BString : BaseValue, ITable, IIterable
+public class BString : BaseValue, ITable
 {
     private string _val;
     private byte[] _buffer;

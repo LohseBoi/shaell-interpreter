@@ -30,4 +30,6 @@ public class NativeTable : ITable
     {
         return;
     }
+
+    public IEnumerable<IValue> GetKeys() => throw new ShaellException(new SString($"Native Tables cannot be iterated."));
 }

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ShaellLang;
 
-public class BaseTable : BaseValue, ITable, IIterable
+public class BaseTable : BaseValue, ITable
 {
     //Store all values that cannot be stored in an array
     private Dictionary<IValue, RefValue> _values = new();

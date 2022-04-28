@@ -129,18 +129,16 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 
     public override IValue VisitForeach(ShaellParser.ForeachContext context)
     {
-        var v = SafeVisit(context.expr()).Unpack();
-        if(v is IIterable iterable && v is ITable table)
+        var table = SafeVisit(context.expr()).ToTable();
+
+        foreach (var key in table.GetKeys())
         {
-            foreach (var key in iterable.GetKeys())
-            {
-                _scopeManager.PushScope(new ScopeContext());
-                _scopeManager.NewTopLevelValue(context.IDENTIFIER().GetText(), table.GetValue(key));
-                var rv = SafeVisit(context.stmts());
-                _scopeManager.PopScope();
-                if (_shouldReturn)
-                    return rv;
-            }
+            _scopeManager.PushScope(new ScopeContext());
+            _scopeManager.NewTopLevelValue(context.IDENTIFIER().GetText(), table.GetValue(key));
+            var rv = SafeVisit(context.stmts());
+            _scopeManager.PopScope();
+            if (_shouldReturn)
+                return rv;
         }
 
         return null;
@@ -148,22 +146,21 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 
     public override IValue VisitForeachKeyValue(ShaellParser.ForeachKeyValueContext context)
     {
-        var v = SafeVisit(context.expr()).Unpack();
-        if(v is IIterable iterable && v is ITable table)
+        var table = SafeVisit(context.expr()).ToTable();
+
+        foreach (var key in table.GetKeys())
         {
-            foreach (var key in iterable.GetKeys())
+            _scopeManager.PushScope(new ScopeContext());
+            _scopeManager.NewTopLevelValue(context.IDENTIFIER(0).GetText(), key);
+            _scopeManager.NewTopLevelValue(context.IDENTIFIER(1).GetText(), table.GetValue(key));
+            var rv = SafeVisit(context.stmts());
+            _scopeManager.PopScope();
+            if (_shouldReturn)
             {
-                _scopeManager.PushScope(new ScopeContext());
-                _scopeManager.NewTopLevelValue(context.IDENTIFIER(0).GetText(), key);
-                _scopeManager.NewTopLevelValue(context.IDENTIFIER(1).GetText(), table.GetValue(key));
-                var rv = SafeVisit(context.stmts());
-                _scopeManager.PopScope();
-                if (_shouldReturn)
-                {
-                    return rv;
-                }
+                return rv;
             }
         }
+        
         return null;
     }
 
