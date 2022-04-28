@@ -656,7 +656,9 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
                 _scopeManager.NewTopLevelValue(formalArgs[i].GetText(), new SNull());
         }
 
-        if (context.ARGV() != null)
+        var argv = context.argv().IDENTIFIER().GetText();
+        
+        if (argv != null)
         {
             var table = new UserTable();
             for (int i = 0; i < _args.Length; i++)
@@ -664,7 +666,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
                 table.SetValue(new Number(i), new RefValue(new SString(_args[i])));
             }
 
-            _scopeManager.NewTopLevelValue(context.ARGV().GetText().Substring(3), table);
+            _scopeManager.NewTopLevelValue(argv, table);
         }
 
         return null;

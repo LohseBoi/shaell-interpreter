@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace ShaellLang;
@@ -31,5 +32,14 @@ public class NativeTable : ITable
         return;
     }
 
-    public IEnumerable<IValue> GetKeys() => throw new ShaellException(new SString($"Native Tables cannot be iterated."));
+    public IEnumerable<IValue> GetKeys()
+    {
+        var rv = new List<IValue>();
+        foreach (var key in valueLookup)   
+        {
+            rv.Add(new SString(key.Key));
+        }
+
+        return rv;
+    }
 }

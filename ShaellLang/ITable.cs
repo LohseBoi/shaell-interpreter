@@ -4,10 +4,9 @@ namespace ShaellLang
 {
 	public interface ITable
 	{
-		//Gets a key
+		// Gets a key
 		RefValue GetValue(IValue key);
-		//Removes a key
-		void RemoveValue(IValue key);
+		// Get all keys
 		public IEnumerable<IValue> GetKeys();
 	}
 }
