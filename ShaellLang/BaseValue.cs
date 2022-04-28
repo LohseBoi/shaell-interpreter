@@ -10,17 +10,17 @@ public abstract class BaseValue : IValue
     {
         _typeName = typeName;
     }
-    public virtual bool ToBool() => throw new Exception($"Cannot convert {_typeName} to bool");
+    public virtual bool ToBool() => throw new ShaellConversionException(_typeName, "bool");
 
-    public virtual Number ToNumber() => throw new Exception($"Cannot convert {_typeName} to number");
-    public virtual IFunction ToFunction() => throw new Exception($"Cannot convert {_typeName} to function");
+    public virtual Number ToNumber() => throw new ShaellConversionException(_typeName, "number");
+    public virtual IFunction ToFunction() => throw new ShaellConversionException(_typeName, "function");
 
-    public virtual SString ToSString() => throw new Exception($"Cannot convert {_typeName} to string");
+    public virtual SString ToSString() => throw new ShaellConversionException(_typeName, "string");
 
-    public virtual ITable ToTable() => throw new Exception($"Cannot convert {_typeName} to table");
+    public virtual ITable ToTable() => throw new ShaellConversionException(_typeName, "table");
 
-    public virtual JobObject ToJobObject() => throw new Exception($"Cannot convert {_typeName} to job object");
-    public virtual SProcess ToSProcess() => throw new Exception($"Cannot convert {_typeName} to process");
+    public virtual JobObject ToJobObject() => throw new ShaellConversionException(_typeName, "jobobject");
+    public virtual SProcess ToSProcess() => throw new ShaellConversionException(_typeName, "process");
 
     public override string ToString() => ToSString().Val;
 
