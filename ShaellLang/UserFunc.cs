@@ -21,7 +21,7 @@ public class UserFunc : BaseValue, IFunction
         _funcBody = funcBody;
         _capturedScope = capturedScope;
         _formalArguments = formalArguments;
-        _globalScope = new ScopeContext();
+        _globalScope = globalScope;
     }
 
     public override bool ToBool() => true;
