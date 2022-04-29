@@ -12,7 +12,7 @@ public class StdLib
     public static IValue PrintFunc(IEnumerable<IValue> args)
     {
         foreach (var value in args)
-            Console.Write(value);
+            Console.Write(value.ToSString().Val);
         Console.WriteLine();
 
         return new SNull();

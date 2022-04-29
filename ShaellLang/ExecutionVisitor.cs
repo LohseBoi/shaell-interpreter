@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Globalization;
 using System.Linq;
@@ -531,7 +532,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     {
         var val = _scopeManager.GetValue(context.IDENTIFIER().GetText());
         if (val == null)
-            return new SFile(context.IDENTIFIER().GetText());
+            return new SFile(context.IDENTIFIER().GetText(), Environment.CurrentDirectory);
         return val;
     }
 
@@ -675,7 +676,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     public override IValue VisitFieldExpr(ShaellParser.FieldExprContext context) => SafeVisit(context.expr());
 
     public override IValue VisitFieldIdentifier(ShaellParser.FieldIdentifierContext context) => new SString(context.GetText());
-    public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(SafeVisit(context.expr()).ToSString().Val);
+    public override IValue VisitDerefExpr(ShaellParser.DerefExprContext context) => new SFile(SafeVisit(context.expr()).ToSString().Val, Environment.CurrentDirectory);
     public override IValue VisitNullExpr(ShaellParser.NullExprContext context) => new SNull();
     
     public override IValue VisitParenthesis(ShaellParser.ParenthesisContext context) => 
