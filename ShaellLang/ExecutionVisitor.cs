@@ -338,7 +338,6 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     public override IValue VisitPlusEqExpr(ShaellParser.PlusEqExprContext context)
     {
         var lhs = SafeVisit(context.expr(0));
-
         if (lhs is not RefValue)
             throw new SemanticError("Tried to assign to non ref", context.start, context.stop);
     
@@ -583,7 +582,9 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     public override IValue VisitPosExpr(ShaellParser.PosExprContext context)
     {
         var lhs = SafeVisit(context.expr());
-        return lhs.ToNumber();
+        if (lhs is Number)
+            return lhs;
+        return lhs.ToTable().GetValue(new SString("toNumber")).ToFunction().Call(new IValue[]{});
     }
     
     //Visit NegExpr and return the value with negative toNumber
@@ -657,7 +658,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
                 _scopeManager.NewTopLevelValue(formalArgs[i].GetText(), new SNull());
         }
 
-        var argv = context.argv().IDENTIFIER().GetText();
+        var argv = context.argv()?.IDENTIFIER().GetText();
         
         if (argv != null)
         {

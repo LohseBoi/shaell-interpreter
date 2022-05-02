@@ -16,8 +16,9 @@ public class SString : BaseValue, ITable
         _val = str;
         _nativeTable = new NativeTable();
         
-        _nativeTable.SetValue("length", new NativeFunc(lengthCallHandler, 0));
+        _nativeTable.SetValue("length", new NativeFunc(LengthCallHandler, 0));
         _nativeTable.SetValue("substring", new NativeFunc(SubStringFunc, 2));
+        _nativeTable.SetValue("toNumber", new NativeFunc(ToNumberFunc, 0));
     }
 
     private IValue SubStringFunc(IEnumerable<IValue> argCollection)
@@ -25,13 +26,20 @@ public class SString : BaseValue, ITable
         Number[] args = argCollection.ToArray().Select(x => x.ToNumber()).ToArray();
         return new SString(Val.Substring((int) args[0].ToInteger(), (int) args[1].ToInteger()));
     }
-
-    private IValue lengthCallHandler(IEnumerable<IValue> args)
+    private IValue ToNumberFunc(IEnumerable<IValue> argCollection)
     {
-        return new Number(this._val.Length);
+        if (int.TryParse(_val, out int resultInt))
+            return new Number(resultInt);
+        if (double.TryParse(_val, out double resultDouble))
+            return new Number(resultDouble);
+        throw new ShaellException(new SString($"Could not convert {_val} to Number"));
     }
 
+    private IValue LengthCallHandler(IEnumerable<IValue> args) => new Number(_val.Length);
+
     public override bool ToBool() => true;
+
+    public override Number ToNumber() => new(double.Parse(_val));
     public override SString ToSString() => this;
     public override ITable ToTable() => this;
     public override bool IsEqual(IValue other)
