@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -30,7 +31,7 @@ public class SString : BaseValue, ITable
     {
         if (int.TryParse(_val, out int resultInt))
             return new Number(resultInt);
-        if (double.TryParse(_val, out double resultDouble))
+        if (double.TryParse(_val, NumberStyles.Float, CultureInfo.InvariantCulture, out double resultDouble))
             return new Number(resultDouble);
         throw new ShaellException(new SString($"Could not convert {_val} to Number"));
     }
@@ -45,9 +46,7 @@ public class SString : BaseValue, ITable
     public override bool IsEqual(IValue other)
     {
         if (other is SString otherString)
-        {
             return _val == otherString._val;
-        }
 
         return false;
     }
@@ -74,10 +73,7 @@ public class SString : BaseValue, ITable
         return;
     }
 
-    public override string ToString()
-    {
-        return _val;
-    }
+    public override string ToString() => _val;
 
     public IEnumerable<IValue> GetKeys()
     {
@@ -91,10 +87,7 @@ public class SString : BaseValue, ITable
         return rv;
     }
 
-    public static SString operator +(SString left, SString right)
-    {
-        return new SString(left.Val + right.Val);
-    }
+    public static SString operator +(SString left, SString right) => new SString(left.Val + right.Val);
 
     public static SString operator *(SString left, Number right)
     {
@@ -125,11 +118,7 @@ public class SString : BaseValue, ITable
     public string KeyValue => _val;
     public string UniquePrefix => "S";
 
-    public override int GetHashCode()
-    {
-        //This might be wrong but i cant be asked
-        return ("S" + Val).GetHashCode();
-    }
+    public override int GetHashCode() => ("S" + Val).GetHashCode(); //This might be wrong but i cant be asked
     
     public override bool Equals(object? obj)
     {
@@ -137,12 +126,8 @@ public class SString : BaseValue, ITable
         {
             return IsEqual(str);
         }
-
         return false;
     }
 
-    public override SString Serialize()
-    {
-        return new SString($"\"{_val}\"");
-    }
+    public override SString Serialize() => new SString($"\"{_val}\"");
 }
