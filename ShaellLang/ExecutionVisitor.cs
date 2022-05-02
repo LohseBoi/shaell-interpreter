@@ -238,7 +238,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
 
         var value = lhs as RefValue;
         if (value == null)
-            throw new SyntaxErrorException("Syntax Error: Tried to assign to non ref");
+            throw new SemanticError("Tried to assign to non ref", context.start, context.stop);
 
         RefValue refLhs = value;
 
@@ -339,9 +339,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     {
         var lhs = SafeVisit(context.expr(0));
         if (lhs is not RefValue)
-        {
-            throw new Exception("Tried to assign to non ref");
-        }
+            throw new SemanticError("Tried to assign to non ref", context.start, context.stop);
     
         var refLhs = lhs as RefValue;
         
@@ -363,9 +361,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
 
         if (lhs is not RefValue)
-        {
-            throw new Exception("Tried to assign to non ref");
-        }
+            throw new SemanticError("Tried to assign to non ref", context.start, context.stop);
     
         var refLhs = lhs as RefValue;
         
@@ -386,9 +382,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
 
         if (lhs is not RefValue)
-        {
-            throw new Exception("Tried to assign to non ref");
-        }
+            throw new SemanticError("Tried to assign to non ref", context.start, context.stop);
     
         var refLhs = lhs as RefValue;
         
@@ -409,9 +403,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
 
         if (lhs is not RefValue)
-        {
-            throw new Exception("Tried to assign to non ref");
-        }
+            throw new SemanticError("Tried to assign to non ref", context.start, context.stop);
     
         var refLhs = lhs as RefValue;
         
@@ -432,9 +424,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
 
         if (lhs is not RefValue)
-        {
-            throw new Exception("Tried to assign to non ref");
-        }
+            throw new SemanticError("Tried to assign to non ref", context.start, context.stop);
     
         var refLhs = lhs as RefValue;
         
@@ -455,9 +445,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
         var lhs = SafeVisit(context.expr(0));
 
         if (lhs is not RefValue)
-        {
-            throw new Exception("Tried to assign to non ref");
-        }
+            throw new SemanticError("Tried to assign to non ref", context.start, context.stop);
     
         var refLhs = lhs as RefValue;
         
@@ -513,15 +501,7 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     {
         var lhs = SafeVisit(context.expr(0));
         var rhs = SafeVisit(context.expr(1));
-        if (lhs is RefValue lhsRef)
-        {
-            lhs = lhsRef.Unpack();
-        }  
-        if (rhs is RefValue rhsRef)
-        {
-            rhs = rhsRef.Unpack();
-        }
-        return new SBool(lhs.IsEqual(rhs));
+        return new SBool(lhs.IsEqual(rhs.Unpack()));
     }
 
     public override IValue VisitNEQExpr(ShaellParser.NEQExprContext context)
@@ -675,13 +655,18 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
                 _scopeManager.NewTopLevelValue(formalArgs[i].GetText(), new SNull());
         }
 
-        var table = new UserTable();
-        for (int i = 0; i < _args.Length; i++)
+        var argv = context.argv()?.IDENTIFIER().GetText();
+        
+        if (argv != null)
         {
-            table.SetValue(new Number(i), new RefValue(new SString(_args[i])));
+            var table = new UserTable();
+            for (int i = 0; i < _args.Length; i++)
+            {
+                table.SetValue(new Number(i), new RefValue(new SString(_args[i])));
+            }
 
+            _scopeManager.NewTopLevelValue(argv, table);
         }
-        _scopeManager.NewTopLevelValue("$argv", table);
 
         return null;
     }

@@ -40,7 +40,6 @@ public class SString : BaseValue, ITable
 
     public override bool ToBool() => true;
 
-    public override Number ToNumber() => new(double.Parse(_val));
     public override SString ToSString() => this;
     public override ITable ToTable() => this;
     public override bool IsEqual(IValue other)
