@@ -588,7 +588,9 @@ public class ExecutionVisitor : ShaellParserBaseVisitor<IValue>
     public override IValue VisitNegExpr(ShaellParser.NegExprContext context)
     {
         var lhs = SafeVisit(context.expr());
-        return -lhs.ToNumber();
+        if (lhs is Number)
+            return lhs;
+        return -(lhs.ToTable().GetValue(new SString("toNumber")).ToFunction().Call(new IValue[]{}) as Number);
     }
     
     //Visit the LORExpr and return the value of the left or right side with short circuiting
